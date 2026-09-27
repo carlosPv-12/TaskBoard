@@ -3,7 +3,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
-import { catchError, filter, finalize, forkJoin, map, of, switchMap, tap } from 'rxjs';
+import { catchError, filter, finalize, of, switchMap, tap } from 'rxjs';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -11,16 +11,15 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData
 } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { HabitStatCardComponent } from '../habit-stat-card/habit-stat-card.component';
-import { HabitService } from '../habit.service';
-import { FREQUENCY_LABELS, Habit, HabitFrequency, HabitLog, HabitRank, HabitStats } from '../habit.models';
 import { addDays, parseIsoDate, startOfWeek, toIsoDate, todayIso } from '../../../shared/utils/local-date';
+import { HabitService } from '../habit.service';
+import { FREQUENCY_LABELS, Habit, HabitFrequency, HabitLog } from '../habit.models';
 
 interface WeekDay {
   iso: string;
@@ -44,14 +43,9 @@ interface HabitRow {
   weekCount: number;
 }
 
-interface RankedHabit {
-  habit: Habit;
-  stats: HabitStats;
-  rank: HabitRank;
-}
-
 const logKey = (habitId: number, iso: string) => `${habitId}|${iso}`;
 
+/** Pantalla "Semana": crear hábitos, marcar días y eliminar. Las estadísticas viven en su propia pestaña. */
 @Component({
   selector: 'app-habit-list',
   imports: [
@@ -62,9 +56,8 @@ const logKey = (habitId: number, iso: string) => `${habitId}|${iso}`;
     MatButtonModule,
     MatButtonToggleModule,
     MatIconModule,
-    MatProgressBarModule,
-    MatTooltipModule,
-    HabitStatCardComponent
+    MatMenuModule,
+    MatProgressBarModule
   ],
   templateUrl: './habit-list.component.html',
   styleUrl: './habit-list.component.scss'
@@ -83,7 +76,6 @@ export class HabitListComponent {
 
   // ── Estado ──────────────────────────────────────────────
   readonly habits = signal<Habit[]>([]);
-  readonly stats = signal<Record<number, HabitStats>>({});
   readonly logs = signal<Record<string, boolean>>({});
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
@@ -130,27 +122,6 @@ export class HabitListComponent {
     });
   });
 
-  /** Hábitos ordenados de más a menos constante, con distintivos. */
-  readonly ranked = computed<RankedHabit[]>(() => {
-    const stats = this.stats();
-    const list = this.habits()
-      .flatMap(habit => (stats[habit.id] ? [{ habit, stats: stats[habit.id] }] : []))
-      .sort((a, b) => b.stats.completionRate - a.stats.completionRate);
-
-    const last = list.length - 1;
-    const hasSpread = list.length > 1 && list[0].stats.completionRate !== list[last].stats.completionRate;
-
-    return list.map((item, i) => ({
-      ...item,
-      rank: hasSpread ? (i === 0 ? 'best' : i === last ? 'worst' : null) : null
-    }));
-  });
-
-  readonly averageRate = computed(() => {
-    const rates = Object.values(this.stats()).map(s => s.completionRate);
-    return rates.length === 0 ? 0 : Math.round(rates.reduce((a, b) => a + b, 0) / rates.length);
-  });
-
   constructor() {
     this.loadHabits();
 
@@ -180,26 +151,16 @@ export class HabitListComponent {
     this.loading.set(true);
     this.loadError.set(null);
 
-    this.habitService
-      .getAll()
-      .pipe(
-        switchMap(habits =>
-          habits.length === 0
-            ? of({ habits, stats: [] as HabitStats[] })
-            : forkJoin(habits.map(h => this.habitService.getStats(h.id))).pipe(map(stats => ({ habits, stats })))
-        )
-      )
-      .subscribe({
-        next: ({ habits, stats }) => {
-          this.habits.set(habits);
-          this.stats.set(Object.fromEntries(habits.map((h, i) => [h.id, stats[i]])));
-          this.loading.set(false);
-        },
-        error: () => {
-          this.loadError.set('No se pudieron cargar los hábitos.');
-          this.loading.set(false);
-        }
-      });
+    this.habitService.getAll().subscribe({
+      next: habits => {
+        this.habits.set(habits);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.loadError.set('No se pudieron cargar los hábitos.');
+        this.loading.set(false);
+      }
+    });
   }
 
   // ── Navegación por semanas ─────────────────────────────
@@ -229,14 +190,10 @@ export class HabitListComponent {
     this.creating.set(true);
     this.habitService
       .create({ name: trimmed, frequency })
-      .pipe(
-        switchMap(habit => this.habitService.getStats(habit.id).pipe(map(stats => ({ habit, stats })))),
-        finalize(() => this.creating.set(false))
-      )
+      .pipe(finalize(() => this.creating.set(false)))
       .subscribe({
-        next: ({ habit, stats }) => {
+        next: habit => {
           this.habits.update(list => [...list, habit]);
-          this.stats.update(map => ({ ...map, [habit.id]: stats }));
           this.formDir().resetForm({ name: '', frequency }); // mantiene la frecuencia elegida
         },
         error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo crear el hábito.'))
@@ -252,12 +209,8 @@ export class HabitListComponent {
 
     this.habitService
       .toggleLog(habitId, { date: cell.iso, completed })
-      .pipe(
-        switchMap(() => this.habitService.getStats(habitId)),
-        finalize(() => this.setPending(cell.key, false))
-      )
+      .pipe(finalize(() => this.setPending(cell.key, false)))
       .subscribe({
-        next: stats => this.stats.update(map => ({ ...map, [habitId]: stats })),
         error: (error: HttpErrorResponse) => {
           this.setLog(cell.key, cell.done); // revertir
           this.notify(this.apiError(error, 'No se pudo registrar el día.'));
@@ -284,7 +237,6 @@ export class HabitListComponent {
       .subscribe({
         next: () => {
           this.habits.update(list => list.filter(h => h.id !== habit.id));
-          this.stats.update(({ [habit.id]: _removed, ...rest }) => rest);
           this.notify('Hábito eliminado');
         },
         error: () => this.notify('No se pudo eliminar el hábito.')

@@ -1,0 +1,175 @@
+:host {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+// ── Barra de periodo ────────────────────────────────────
+.toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.period-nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.period-label {
+  min-width: 170px;
+  text-align: center;
+  font: var(--mat-sys-title-small);
+
+  &::first-letter {
+    text-transform: uppercase;
+  }
+}
+
+// ── Tarjetas ────────────────────────────────────────────
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  .label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font: var(--mat-sys-label-large);
+    color: var(--mat-sys-on-surface-variant);
+
+    mat-icon {
+      font-size: 18px;
+      width: 18px;
+      height: 18px;
+    }
+  }
+
+  .value {
+    font: var(--mat-sys-headline-medium);
+    font-variant-numeric: tabular-nums;
+
+    small {
+      font: var(--mat-sys-title-small);
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+
+  .sub {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+
+    &.capitalize::first-letter {
+      text-transform: uppercase;
+    }
+  }
+
+  .trend {
+    font-size: 16px;
+    width: 16px;
+    height: 16px;
+  }
+
+  &.highlight {
+    background: var(--mat-sys-primary-container);
+    border-color: transparent;
+    color: var(--mat-sys-on-primary-container);
+
+    .label,
+    .sub,
+    small {
+      color: inherit;
+    }
+
+    .sub.up {
+      color: #1b5e20;
+      font-weight: 500;
+    }
+
+    .sub.down {
+      color: var(--mat-sys-error);
+      font-weight: 500;
+    }
+  }
+}
+
+// ── Gráfica ─────────────────────────────────────────────
+.chart-card {
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  header {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin-bottom: 12px;
+
+    h2 {
+      margin: 0;
+      font: var(--mat-sys-title-large);
+    }
+
+    span {
+      font: var(--mat-sys-body-medium);
+      color: var(--mat-sys-on-surface-variant);
+    }
+  }
+}
+
+.chart-wrap {
+  position: relative;
+  height: 320px;
+}
+
+// ── Estados ─────────────────────────────────────────────
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (max-width: 600px) {
+  .toolbar {
+    justify-content: center;
+  }
+
+  .chart-wrap {
+    height: 240px;
+  }
+}

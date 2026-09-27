@@ -1,0 +1,99 @@
+<div class="toolbar">
+  <mat-button-toggle-group
+    [value]="selectedPeriod()"
+    (change)="setPeriod($event.value)"
+    hideSingleSelectionIndicator
+    aria-label="Periodo">
+    <mat-button-toggle value="week">Semana</mat-button-toggle>
+    <mat-button-toggle value="month">Mes</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  <div class="period-nav">
+    <button mat-icon-button (click)="previous()" aria-label="Periodo anterior">
+      <mat-icon>chevron_left</mat-icon>
+    </button>
+    <span class="period-label">
+      @if (selectedPeriod() === 'week') {
+        {{ periodStartDate() | date: 'd MMM' }} – {{ periodEndDate() | date: 'd MMM y' }}
+      } @else {
+        {{ periodStartDate() | date: 'MMMM y' }}
+      }
+    </span>
+    <button mat-icon-button (click)="next()" [disabled]="isCurrentPeriod()" aria-label="Periodo siguiente">
+      <mat-icon>chevron_right</mat-icon>
+    </button>
+    @if (!isCurrentPeriod()) {
+      <button mat-button (click)="goToCurrent()">Hoy</button>
+    }
+  </div>
+</div>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (loadError(); as error) {
+  <div class="state">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-stroked-button (click)="retry()">Reintentar</button>
+  </div>
+} @else if (summary(); as s) {
+  <!-- ── Tarjetas ── -->
+  <div class="stats">
+    <div class="stat highlight">
+      <span class="label"><mat-icon>schedule</mat-icon> Tiempo total</span>
+      <span class="value">{{ s.total | duration: 'short' }}</span>
+      <span class="sub" [class.up]="(s.changePct ?? 0) > 0" [class.down]="(s.changePct ?? 0) < 0">
+        @if (s.changePct !== null) {
+          <mat-icon class="trend">{{ s.changePct > 0 ? 'trending_up' : s.changePct < 0 ? 'trending_down' : 'trending_flat' }}</mat-icon>
+          {{ s.changePct > 0 ? '+' : '' }}{{ s.changePct.toFixed(0) }} % vs {{ selectedPeriod() === 'week' ? 'semana' : 'mes' }} anterior
+        } @else if (s.total > 0) {
+          Sin tiempo en el {{ selectedPeriod() === 'week' ? 'la semana' : 'el mes' }} anterior
+        } @else {
+          Aún sin tiempo registrado
+        }
+      </span>
+    </div>
+
+    <div class="stat">
+      <span class="label"><mat-icon>event_available</mat-icon> Días activos</span>
+      <span class="value">{{ s.activeDays }}<small> / {{ s.elapsedDays }}</small></span>
+      <span class="sub">días con tiempo registrado</span>
+    </div>
+
+    <div class="stat">
+      <span class="label"><mat-icon>avg_time</mat-icon> Media diaria</span>
+      <span class="value">{{ s.activeDays > 0 ? (s.average | duration: 'short') : '—' }}</span>
+      <span class="sub">por día activo</span>
+    </div>
+
+    <div class="stat">
+      <span class="label"><mat-icon>emoji_events</mat-icon> Mejor día</span>
+      @if (s.best; as best) {
+        <span class="value">{{ best.seconds | duration: 'short' }}</span>
+        <span class="sub capitalize">{{ best.date | date: "EEEE d 'de' MMM" }}</span>
+      } @else {
+        <span class="value">—</span>
+        <span class="sub">sin datos en este periodo</span>
+      }
+    </div>
+  </div>
+
+  <!-- ── Gráfica ── -->
+  @if (s.total === 0) {
+    <div class="state">
+      <mat-icon>timer_off</mat-icon>
+      <p>No registraste tiempo en {{ selectedPeriod() === 'week' ? 'esta semana' : 'este mes' }}.</p>
+      <a mat-stroked-button routerLink="/tasks/list">Ir a la lista de tareas</a>
+    </div>
+  } @else {
+    <section class="chart-card">
+      <header>
+        <h2>Tiempo por día</h2>
+        <span>en {{ unit() === 'h' ? 'horas' : 'minutos' }} · hoy resaltado</span>
+      </header>
+      <div class="chart-wrap">
+        <canvas baseChart type="bar" [data]="chartData()" [options]="chartOptions()"></canvas>
+      </div>
+    </section>
+  }
+}

@@ -1,24 +1,7 @@
 :host {
-  display: block;
-}
-
-.page {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-.page-header {
-  h1 {
-    margin: 0;
-    font: var(--mat-sys-headline-medium);
-  }
-
-  .subtitle {
-    margin: 4px 0 0;
-    font: var(--mat-sys-body-medium);
-    color: var(--mat-sys-on-surface-variant);
-  }
 }
 
 // ── Formulario ──────────────────────────────────────────
@@ -92,12 +75,12 @@
 }
 
 .grid {
-  min-width: 560px;
+  min-width: 600px;
 }
 
 .grid-row {
   display: grid;
-  grid-template-columns: minmax(160px, 1.8fr) repeat(7, minmax(48px, 1fr));
+  grid-template-columns: minmax(190px, 1.8fr) repeat(7, minmax(48px, 1fr));
   align-items: center;
   border-bottom: 1px solid var(--mat-sys-outline-variant);
 
@@ -111,12 +94,21 @@
   }
 }
 
+// Nombre del hábito + menú de acciones en la misma celda
 .cell-name {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 4px 6px 8px;
+  min-width: 0;
+}
+
+.name-text {
+  flex: 1;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 10px 8px;
-  min-width: 0;
 }
 
 .habit-name {
@@ -129,6 +121,11 @@
 
 .habit-meta {
   font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.row-menu {
+  flex-shrink: 0;
   color: var(--mat-sys-on-surface-variant);
 }
 
@@ -219,28 +216,9 @@
   }
 }
 
-// ── Estadísticas ────────────────────────────────────────
-.section-title {
-  display: flex;
-  align-items: baseline;
-  gap: 12px;
-  margin-top: 8px;
-
-  h2 {
-    margin: 0;
-    font: var(--mat-sys-title-large);
-  }
-
-  span {
-    font: var(--mat-sys-body-medium);
-    color: var(--mat-sys-on-surface-variant);
-  }
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
+.danger,
+.danger mat-icon {
+  color: var(--mat-sys-error);
 }
 
 // ── Estados vacío / error ──────────────────────────────

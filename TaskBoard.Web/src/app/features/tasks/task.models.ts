@@ -22,3 +22,20 @@ export interface UpdateTaskRequest {
 }
 
 export type TaskStatusFilter = 'all' | 'pending' | 'done';
+
+export type StatsPeriod = 'week' | 'month';
+
+export interface DailyTime {
+  date: string; // "yyyy-MM-dd", día LOCAL
+  seconds: number;
+}
+
+export interface TaskTimeStats {
+  period: StatsPeriod;
+  from: string;
+  to: string;
+  totalSeconds: number;
+  previousTotalSeconds: number;
+  activeDays: number;
+  days: DailyTime[];
+}

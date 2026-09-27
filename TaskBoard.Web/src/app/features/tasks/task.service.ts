@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateTaskRequest, Task, TimeEntry, UpdateTaskRequest } from './task.models';
+import { CreateTaskRequest, Task, TimeEntry, UpdateTaskRequest, TaskTimeStats, StatsPeriod } from './task.models';
 
 @Injectable({ providedIn: 'root' })
 export class TaskService {
@@ -39,5 +39,9 @@ export class TaskService {
 
   stopTimer(taskId: number, entryId: number): Observable<unknown> {
     return this.http.post(`${this.timeEntriesUrl(taskId)}/${entryId}/stop`, {});
+  }
+    /** Tiempo invertido por día del periodo, repartido en días de la zona horaria indicada. */
+  getStats(period: StatsPeriod, date: string, timeZone: string): Observable<TaskTimeStats> {
+    return this.http.get<TaskTimeStats>(`${this.tasksUrl}/stats`, { params: { period, date, timeZone } });
   }
 }

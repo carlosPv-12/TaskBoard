@@ -14,13 +14,11 @@ export const routes: Routes = [
     children: [
       {
         path: 'tasks',
-        loadComponent: () =>
-          import('./features/tasks/task-list/task-list.component').then(m => m.TaskListComponent)
+        loadChildren: () => import('./features/tasks/tasks.routes').then(m => m.TASK_ROUTES)
       },
-      {
+            {
         path: 'habits',
-        loadComponent: () =>
-          import('./features/habits/habit-list/habit-list.component').then(m => m.HabitListComponent)
+        loadChildren: () => import('./features/habits/habits.routes').then(m => m.HABIT_ROUTES)
       },
       {
         path: 'gym',

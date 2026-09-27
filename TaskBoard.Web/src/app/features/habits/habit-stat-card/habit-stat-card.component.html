@@ -4,16 +4,6 @@
       <h3>{{ habit().name }}</h3>
       <span class="chip">{{ frequencyLabel() }}</span>
     </div>
-
-    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Más acciones">
-      <mat-icon>more_vert</mat-icon>
-    </button>
-    <mat-menu #menu="matMenu" xPosition="before">
-      <button mat-menu-item class="danger" (click)="remove.emit()">
-        <mat-icon>delete</mat-icon>
-        <span>Eliminar hábito</span>
-      </button>
-    </mat-menu>
   </header>
 
   @if (rank() === 'best') {

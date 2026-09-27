@@ -1,16 +1,15 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { DecimalPipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
-import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { FREQUENCY_LABELS, Habit, HabitRank, HabitStats } from '../habit.models';
 
 type Tone = 'good' | 'mid' | 'low';
 
+/** Tarjeta de solo lectura: gestionar (eliminar) se hace desde la pestaña "Semana". */
 @Component({
   selector: 'app-habit-stat-card',
-  imports: [DecimalPipe, MatButtonModule, MatIconModule, MatMenuModule, MatProgressBarModule],
+  imports: [DecimalPipe, MatIconModule, MatProgressBarModule],
   templateUrl: './habit-stat-card.component.html',
   styleUrl: './habit-stat-card.component.scss'
 })
@@ -18,8 +17,6 @@ export class HabitStatCardComponent {
   readonly habit = input.required<Habit>();
   readonly stats = input.required<HabitStats>();
   readonly rank = input<HabitRank>(null);
-
-  readonly remove = output<void>();
 
   readonly frequencyLabel = computed(() => FREQUENCY_LABELS[this.habit().frequency]);
 

@@ -1,131 +1,120 @@
-<section class="page">
-  <header class="page-header">
-    <h1>Hábitos</h1>
-    @if (habits().length > 0) {
-      <p class="subtitle">{{ habits().length }} hábitos · {{ averageRate() }} % de cumplimiento medio</p>
+<form class="create-form" [formGroup]="createForm" (ngSubmit)="create()">
+  <mat-form-field appearance="outline" class="create-field" subscriptSizing="dynamic">
+    <mat-label>Nuevo hábito</mat-label>
+    <mat-icon matPrefix>repeat</mat-icon>
+    <input matInput formControlName="name" placeholder="Ej: Leer 20 minutos" maxlength="100" />
+    @if (createForm.controls.name.hasError('minlength')) {
+      <mat-error>Mínimo 3 caracteres</mat-error>
     }
-  </header>
+  </mat-form-field>
 
-  <form class="create-form" [formGroup]="createForm" (ngSubmit)="create()">
-    <mat-form-field appearance="outline" class="create-field" subscriptSizing="dynamic">
-      <mat-label>Nuevo hábito</mat-label>
-      <mat-icon matPrefix>repeat</mat-icon>
-      <input matInput formControlName="name" placeholder="Ej: Leer 20 minutos" maxlength="100" />
-      @if (createForm.controls.name.hasError('minlength')) {
-        <mat-error>Mínimo 3 caracteres</mat-error>
-      }
-    </mat-form-field>
+  <mat-button-toggle-group
+    formControlName="frequency"
+    class="frequency"
+    hideSingleSelectionIndicator
+    aria-label="Frecuencia">
+    <mat-button-toggle value="Daily">Diario</mat-button-toggle>
+    <mat-button-toggle value="Weekly">Semanal</mat-button-toggle>
+  </mat-button-toggle-group>
 
-    <mat-button-toggle-group
-      formControlName="frequency"
-      class="frequency"
-      hideSingleSelectionIndicator
-      aria-label="Frecuencia">
-      <mat-button-toggle value="Daily">Diario</mat-button-toggle>
-      <mat-button-toggle value="Weekly">Semanal</mat-button-toggle>
-    </mat-button-toggle-group>
+  <button mat-flat-button type="submit" class="create-btn" [disabled]="creating()">
+    <mat-icon>add</mat-icon> Añadir
+  </button>
+</form>
 
-    <button mat-flat-button type="submit" class="create-btn" [disabled]="creating()">
-      <mat-icon>add</mat-icon> Añadir
-    </button>
-  </form>
-
-  @if (loading()) {
-    <mat-progress-bar mode="indeterminate" />
-  } @else if (loadError(); as error) {
-    <div class="state">
-      <mat-icon>cloud_off</mat-icon>
-      <p>{{ error }}</p>
-      <button mat-stroked-button (click)="loadHabits()">Reintentar</button>
-    </div>
-  } @else if (habits().length === 0) {
-    <div class="state">
-      <mat-icon>self_improvement</mat-icon>
-      <p>Aún no tienes hábitos. Crea el primero arriba.</p>
-    </div>
-  } @else {
-    <!-- ── Rejilla semanal ── -->
-    <div class="panel">
-      <div class="panel-header">
-        <h2>Semana</h2>
-        <div class="week-nav">
-          <button mat-icon-button (click)="previousWeek()" aria-label="Semana anterior">
-            <mat-icon>chevron_left</mat-icon>
-          </button>
-          <span class="week-label">
-            {{ weekDays()[0].date | date: 'd MMM' }} – {{ weekDays()[6].date | date: 'd MMM y' }}
-          </span>
-          <button mat-icon-button (click)="nextWeek()" [disabled]="isCurrentWeek()" aria-label="Semana siguiente">
-            <mat-icon>chevron_right</mat-icon>
-          </button>
-          @if (!isCurrentWeek()) {
-            <button mat-button (click)="goToCurrentWeek()">Hoy</button>
-          }
-        </div>
-      </div>
-
-      <div class="loading-slot">
-        @if (logsLoading()) {
-          <mat-progress-bar mode="indeterminate" />
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (loadError(); as error) {
+  <div class="state">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-stroked-button (click)="loadHabits()">Reintentar</button>
+  </div>
+} @else if (habits().length === 0) {
+  <div class="state">
+    <mat-icon>self_improvement</mat-icon>
+    <p>Aún no tienes hábitos. Crea el primero arriba.</p>
+  </div>
+} @else {
+  <div class="panel">
+    <div class="panel-header">
+      <h2>Semana</h2>
+      <div class="week-nav">
+        <button mat-icon-button (click)="previousWeek()" aria-label="Semana anterior">
+          <mat-icon>chevron_left</mat-icon>
+        </button>
+        <span class="week-label">
+          {{ weekDays()[0].date | date: 'd MMM' }} – {{ weekDays()[6].date | date: 'd MMM y' }}
+        </span>
+        <button mat-icon-button (click)="nextWeek()" [disabled]="isCurrentWeek()" aria-label="Semana siguiente">
+          <mat-icon>chevron_right</mat-icon>
+        </button>
+        @if (!isCurrentWeek()) {
+          <button mat-button (click)="goToCurrentWeek()">Hoy</button>
         }
       </div>
+    </div>
 
-      <div class="grid-scroll">
-        <div class="grid" role="grid" aria-label="Registro semanal de hábitos">
-          <div class="grid-row head" role="row">
-            <div class="cell-name" role="columnheader">Hábito</div>
-            @for (day of weekDays(); track day.iso) {
-              <div class="cell-day" [class.today]="day.isToday" role="columnheader">
-                <span class="dow">{{ day.date | date: 'EEE' }}</span>
-                <span class="dom">{{ day.date | date: 'd' }}</span>
-              </div>
-            }
-          </div>
+    <div class="loading-slot">
+      @if (logsLoading()) {
+        <mat-progress-bar mode="indeterminate" />
+      }
+    </div>
 
-          @for (row of rows(); track row.habit.id) {
-            <div class="grid-row" role="row">
-              <div class="cell-name" role="rowheader">
-                <span class="habit-name">{{ row.habit.name }}</span>
-                <span class="habit-meta">{{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/7</span>
-              </div>
-
-              @for (cell of row.cells; track cell.key) {
-                <div class="cell-day" [class.today]="cell.isToday" role="gridcell">
-                  <button
-                    type="button"
-                    class="check"
-                    [class.done]="cell.done"
-                    [class.pending]="cell.pending"
-                    [disabled]="cell.disabled"
-                    [attr.aria-pressed]="cell.done"
-                    [attr.aria-label]="row.habit.name + ', ' + cell.iso"
-                    (click)="toggle(row.habit.id, cell)">
-                    @if (cell.done) {
-                      <mat-icon>check</mat-icon>
-                    }
-                  </button>
-                </div>
-              }
+    <div class="grid-scroll">
+      <div class="grid" role="grid" aria-label="Registro semanal de hábitos">
+        <div class="grid-row head" role="row">
+          <div class="cell-name" role="columnheader">Hábito</div>
+          @for (day of weekDays(); track day.iso) {
+            <div class="cell-day" [class.today]="day.isToday" role="columnheader">
+              <span class="dow">{{ day.date | date: 'EEE' }}</span>
+              <span class="dom">{{ day.date | date: 'd' }}</span>
             </div>
           }
         </div>
+
+        @for (row of rows(); track row.habit.id) {
+          <div class="grid-row" role="row">
+            <div class="cell-name" role="rowheader">
+              <div class="name-text">
+                <span class="habit-name">{{ row.habit.name }}</span>
+                <span class="habit-meta">{{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/7</span>
+              </div>
+              <button
+                mat-icon-button
+                class="row-menu"
+                [matMenuTriggerFor]="habitMenu"
+                [attr.aria-label]="'Acciones para ' + row.habit.name">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #habitMenu="matMenu">
+                <button mat-menu-item class="danger" (click)="remove(row.habit)">
+                  <mat-icon>delete</mat-icon>
+                  <span>Eliminar hábito</span>
+                </button>
+              </mat-menu>
+            </div>
+
+            @for (cell of row.cells; track cell.key) {
+              <div class="cell-day" [class.today]="cell.isToday" role="gridcell">
+                <button
+                  type="button"
+                  class="check"
+                  [class.done]="cell.done"
+                  [class.pending]="cell.pending"
+                  [disabled]="cell.disabled"
+                  [attr.aria-pressed]="cell.done"
+                  [attr.aria-label]="row.habit.name + ', ' + cell.iso"
+                  (click)="toggle(row.habit.id, cell)">
+                  @if (cell.done) {
+                    <mat-icon>check</mat-icon>
+                  }
+                </button>
+              </div>
+            }
+          </div>
+        }
       </div>
     </div>
-
-    <!-- ── Estadísticas ── -->
-    <div class="section-title">
-      <h2>Estadísticas</h2>
-      <span>De más a menos constante</span>
-    </div>
-
-    <div class="stats-grid">
-      @for (item of ranked(); track item.habit.id) {
-        <app-habit-stat-card
-          [habit]="item.habit"
-          [stats]="item.stats"
-          [rank]="item.rank"
-          (remove)="remove(item.habit)" />
-      }
-    </div>
-  }
-</section>
+  </div>
+}

@@ -1,0 +1,46 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (loadError(); as error) {
+  <div class="state">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-stroked-button (click)="load()">Reintentar</button>
+  </div>
+} @else if (summary(); as s) {
+  <!-- ── Resumen ── -->
+  <div class="summary">
+    <div class="stat highlight">
+      <span class="label"><mat-icon>percent</mat-icon> Cumplimiento medio</span>
+      <span class="value">{{ s.averageRate }}<small> %</small></span>
+      <span class="sub">de {{ s.count }} {{ s.count === 1 ? 'hábito' : 'hábitos' }}</span>
+    </div>
+    <div class="stat">
+      <span class="label"><mat-icon class="streak-icon">local_fire_department</mat-icon> Mejor racha actual</span>
+      <span class="value">{{ s.bestStreak }}</span>
+      <span class="sub">{{ s.bestStreak > 0 ? s.bestStreakName : 'Ningún hábito en racha' }}</span>
+    </div>
+    <div class="stat">
+      <span class="label"><mat-icon>task_alt</mat-icon> Completados</span>
+      <span class="value">{{ s.completed }}</span>
+      <span class="sub">registros en total</span>
+    </div>
+  </div>
+
+  <!-- ── Tarjetas ── -->
+  <div class="section-title">
+    <h2>Por hábito</h2>
+    <span>De más a menos constante</span>
+  </div>
+
+  <div class="cards">
+    @for (item of ranked(); track item.habit.id) {
+      <app-habit-stat-card [habit]="item.habit" [stats]="item.stats" [rank]="item.rank" />
+    }
+  </div>
+} @else {
+  <div class="state">
+    <mat-icon>insights</mat-icon>
+    <p>Aún no tienes hábitos para analizar.</p>
+    <a mat-stroked-button routerLink="/habits/week">Crear el primero</a>
+  </div>
+}
