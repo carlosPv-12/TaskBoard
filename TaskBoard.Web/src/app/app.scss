@@ -35,3 +35,36 @@
     padding: 16px 16px 48px;
   }
 }
+
+.nav {
+  display: flex;
+  gap: 4px;
+}
+
+// Tablet: fuera el email
+@media (max-width: 800px) {
+  .user-email {
+    display: none;
+  }
+}
+
+// Móvil: solo iconos
+@media (max-width: 600px) {
+  .topbar {
+    padding: 0 4px 0 12px;
+  }
+
+  .brand,
+  .nav-label {
+    display: none;
+  }
+
+  .nav a {
+    min-width: 48px;
+    padding: 0 12px;
+
+    mat-icon {
+      margin: 0;
+    }
+  }
+}

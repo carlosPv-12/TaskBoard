@@ -1,13 +1,24 @@
 @if (auth.isAuthenticated()) {
   <mat-toolbar class="topbar">
-    <mat-icon>dashboard</mat-icon>
+    <mat-icon class="logo">dashboard</mat-icon>
     <span class="brand">TaskBoard</span>
     <span class="spacer"></span>
+
     <nav class="nav">
-      <a mat-button routerLink="/tasks" routerLinkActive="active">Tareas</a>
-      <a mat-button routerLink="/habits" routerLinkActive="active">Hábitos</a>
-      <a mat-button routerLink="/gym" routerLinkActive="active">Gimnasio</a>
+      <a mat-button routerLink="/tasks" routerLinkActive="active" aria-label="Tareas">
+        <mat-icon>checklist</mat-icon>
+        <span class="nav-label">Tareas</span>
+      </a>
+      <a mat-button routerLink="/habits" routerLinkActive="active" aria-label="Hábitos">
+        <mat-icon>self_improvement</mat-icon>
+        <span class="nav-label">Hábitos</span>
+      </a>
+      <a mat-button routerLink="/gym" routerLinkActive="active" aria-label="Gimnasio">
+        <mat-icon>fitness_center</mat-icon>
+        <span class="nav-label">Gimnasio</span>
+      </a>
     </nav>
+
     <span class="user-email">{{ auth.email() }}</span>
     <button mat-icon-button (click)="auth.logout()" aria-label="Cerrar sesión">
       <mat-icon>logout</mat-icon>
