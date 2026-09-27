@@ -1,0 +1,101 @@
+<a mat-button routerLink="/gym/calendar" class="back">
+  <mat-icon>arrow_back</mat-icon>
+  Calendario
+</a>
+
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (loadError(); as error) {
+  <div class="state">
+    <mat-icon>search_off</mat-icon>
+    <p>{{ error }}</p>
+    <a mat-stroked-button routerLink="/gym/calendar">Volver al calendario</a>
+  </div>
+} @else if (session(); as s) {
+  <header class="hero">
+    <div class="hero-text">
+      <span class="eyebrow">{{ dateObj() | date: "EEEE, d 'de' MMMM y" }}</span>
+      <h2>{{ s.routineName ?? 'Entreno libre' }}</h2>
+    </div>
+    <button mat-stroked-button class="delete-btn" (click)="deleteSession()" [disabled]="deleting()">
+      <mat-icon>delete</mat-icon>
+      Eliminar entreno
+    </button>
+  </header>
+
+  <!-- ── Resumen ── -->
+  <div class="summary">
+    <div class="stat">
+      <span class="value">{{ summary().exercises }}</span>
+      <span class="label">ejercicios</span>
+    </div>
+    <div class="stat">
+      <span class="value">{{ summary().sets }}</span>
+      <span class="label">series</span>
+    </div>
+    <div class="stat">
+      <span class="value">{{ summary().volume | number: '1.0-0' }}<small> kg</small></span>
+      <span class="label">volumen total</span>
+    </div>
+
+    <form class="stat duration" [formGroup]="durationForm" (ngSubmit)="saveDuration()">
+      <mat-form-field appearance="outline" subscriptSizing="dynamic">
+        <mat-label>Duración (min)</mat-label>
+        <input matInput type="number" formControlName="durationMinutes" min="1" max="600" />
+      </mat-form-field>
+      <button
+        mat-icon-button
+        type="submit"
+        [disabled]="savingDuration() || durationForm.invalid || durationForm.pristine"
+        aria-label="Guardar duración">
+        <mat-icon>check</mat-icon>
+      </button>
+    </form>
+  </div>
+
+  <!-- ── Ejercicios ── -->
+  <div class="exercise-list">
+    @for (item of s.exercises; track item.id; let i = $index) {
+      <app-session-exercise-card
+        [item]="item"
+        [position]="i + 1"
+        [busy]="busyIds().has(item.id)"
+        (addSet)="addSet(item, $event)"
+        (deleteSet)="deleteSet(item, $event)"
+        (remove)="removeExercise(item)" />
+    } @empty {
+      <div class="state compact">
+        <mat-icon>add_task</mat-icon>
+        <p>Entreno vacío. Añade tu primer ejercicio abajo.</p>
+      </div>
+    }
+  </div>
+
+  <!-- ── Añadir ejercicio ── -->
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="add-exercise">
+    <mat-label>Añadir ejercicio al entreno</mat-label>
+    <mat-icon matPrefix>add</mat-icon>
+    <input
+      matInput
+      #exerciseInput
+      [matAutocomplete]="auto"
+      [disabled]="addingExercise()"
+      (input)="query.set(exerciseInput.value)"
+      placeholder="Busca en el catálogo por nombre o músculo" />
+    <mat-autocomplete
+      #auto="matAutocomplete"
+      [autoActiveFirstOption]="true"
+      (optionSelected)="addExercise($event, exerciseInput)">
+      @for (exercise of availableExercises(); track exercise.id) {
+        <mat-option [value]="exercise">
+          {{ exercise.name }}
+          <span class="option-group">{{ exercise.muscleGroup }}</span>
+        </mat-option>
+      } @empty {
+        <mat-option disabled>
+          {{ catalog().length === 0 ? 'El catálogo está vacío' : 'Sin resultados' }}
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+}

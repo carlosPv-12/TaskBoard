@@ -1,0 +1,348 @@
+:host {
+  display: block;
+}
+
+// ── Resumen ─────────────────────────────────────────────
+.summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+
+  > mat-icon {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    font-size: 22px;
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  div {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .value {
+    font: var(--mat-sys-title-large);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .label {
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+// ── Layout ──────────────────────────────────────────────
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(280px, 1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.calendar,
+.day-panel {
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+// ── Calendario ──────────────────────────────────────────
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-left: 4px;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+    text-transform: capitalize;
+  }
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.weekdays,
+.days {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.weekdays span {
+  padding-bottom: 4px;
+  text-align: center;
+  font: var(--mat-sys-label-medium);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.day {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-height: 78px;
+  min-width: 0;
+  padding: 6px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 12px;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--mat-sys-outline);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: 1px;
+  }
+
+  &.outside {
+    opacity: 0.45;
+  }
+
+  &:disabled {
+    cursor: default;
+    background: transparent;
+    border-style: dashed;
+    opacity: 0.4;
+  }
+
+  &.trained {
+    background: var(--mat-sys-primary-container);
+    border-color: transparent;
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  &.selected {
+    border-color: var(--mat-sys-primary);
+    box-shadow: 0 0 0 1px var(--mat-sys-primary);
+  }
+
+  &.today .day-number {
+    background: var(--mat-sys-primary);
+    color: var(--mat-sys-on-primary);
+  }
+}
+
+.day-number {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  font: var(--mat-sys-label-large);
+}
+
+.day-label {
+  max-width: 100%;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-label-small);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.more {
+  font: var(--mat-sys-label-small);
+}
+
+// ── Panel del día ───────────────────────────────────────
+.day-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+
+  h2 {
+    margin: 2px 0 0;
+    font: var(--mat-sys-title-large);
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
+  }
+}
+
+.eyebrow {
+  font: var(--mat-sys-label-medium);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary);
+}
+
+.session-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.session-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px 10px 10px;
+  border-radius: 14px;
+  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--mat-sys-surface);
+  color: inherit;
+  text-decoration: none;
+  transition: border-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    border-color: var(--mat-sys-primary);
+    outline: none;
+  }
+}
+
+.session-icon {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.session-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+
+  strong {
+    font: var(--mat-sys-title-small);
+  }
+
+  span {
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.chevron {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.no-sessions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 14px;
+  border-radius: 12px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.create-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 16px;
+  border-top: 1px solid var(--mat-sys-outline-variant);
+
+  h3 {
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+  }
+}
+
+.hint {
+  margin: -4px 0 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+
+  a {
+    color: var(--mat-sys-primary);
+  }
+}
+
+.start-btn {
+  height: 48px;
+  margin-top: 4px;
+}
+
+// ── Estados ─────────────────────────────────────────────
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+// ── Responsive ──────────────────────────────────────────
+@media (max-width: 900px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .day {
+    align-items: center;
+    min-height: 50px;
+    padding: 4px 2px;
+  }
+
+  .day-label,
+  .more {
+    display: none;
+  }
+
+  .day.trained::after {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--mat-sys-primary);
+  }
+}

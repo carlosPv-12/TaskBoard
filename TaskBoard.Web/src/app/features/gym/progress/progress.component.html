@@ -1,0 +1,124 @@
+<div class="toolbar">
+  <mat-form-field appearance="outline" subscriptSizing="dynamic" class="exercise-select">
+    <mat-label>Ejercicio</mat-label>
+    <mat-select
+      [value]="selectedExerciseId()"
+      (selectionChange)="selectExercise($event.value)"
+      placeholder="Elige un ejercicio"
+      [disabled]="catalogLoading()">
+      @for (group of groups(); track group.group) {
+        <mat-optgroup [label]="group.group">
+          @for (exercise of group.exercises; track exercise.id) {
+            <mat-option [value]="exercise.id">{{ exercise.name }}</mat-option>
+          }
+        </mat-optgroup>
+      }
+    </mat-select>
+  </mat-form-field>
+
+  <mat-button-toggle-group
+    [value]="metric()"
+    (change)="metric.set($event.value)"
+    hideSingleSelectionIndicator
+    aria-label="Métrica de la gráfica">
+    <mat-button-toggle value="weight">Peso máximo</mat-button-toggle>
+    <mat-button-toggle value="volume">Volumen</mat-button-toggle>
+  </mat-button-toggle-group>
+</div>
+
+@if (catalogLoading() || progressLoading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (selectedExerciseId() === null) {
+  <div class="state">
+    <mat-icon>query_stats</mat-icon>
+    <p>Elige un ejercicio para ver su evolución.</p>
+  </div>
+} @else if (progress().length === 0) {
+  <div class="state">
+    <mat-icon>hourglass_empty</mat-icon>
+    <p>
+      Todavía no hay series registradas de
+      <strong>{{ selectedExercise()?.name ?? 'este ejercicio' }}</strong>.
+    </p>
+    <a mat-stroked-button routerLink="/gym/calendar">Ir al calendario</a>
+  </div>
+} @else if (stats(); as s) {
+  <!-- ── Tarjetas ── -->
+  <div class="stats">
+    <div class="stat highlight">
+      <span class="label"><mat-icon>emoji_events</mat-icon> Récord</span>
+      <span class="value">{{ s.record.maxWeight | number: '1.0-2' }}<small> kg</small></span>
+      <span class="sub">{{ s.record.date | date: 'd MMM y' }}</span>
+    </div>
+    <div class="stat">
+      <span class="label"><mat-icon>history</mat-icon> Último entreno</span>
+      <span class="value">{{ s.last.maxWeight | number: '1.0-2' }}<small> kg</small></span>
+      <span class="sub">{{ s.last.date | date: 'd MMM y' }}</span>
+    </div>
+    <div class="stat" [class.up]="s.sessions > 1 && s.change > 0" [class.down]="s.sessions > 1 && s.change < 0">
+      <span class="label"><mat-icon>trending_up</mat-icon> Evolución</span>
+      @if (s.sessions > 1) {
+        <span class="value">
+          {{ s.change > 0 ? '+' : '' }}{{ s.change | number: '1.0-2' }}<small> kg</small>
+        </span>
+        <span class="sub">
+          @if (s.changePct !== null) {
+            {{ s.change > 0 ? '+' : '' }}{{ s.changePct | number: '1.0-1' }} % desde el primer entreno
+          } @else {
+            desde el primer entreno
+          }
+        </span>
+      } @else {
+        <span class="value">—</span>
+        <span class="sub">Necesitas al menos 2 días entrenados</span>
+      }
+    </div>
+    <div class="stat">
+      <span class="label"><mat-icon>fitness_center</mat-icon> Entrenos</span>
+      <span class="value">{{ s.sessions }}</span>
+      <span class="sub">{{ s.sessions === 1 ? 'día con este ejercicio' : 'días con este ejercicio' }}</span>
+    </div>
+  </div>
+
+  <!-- ── Gráfica ── -->
+  <section class="chart-card">
+    <header>
+      <h2>{{ selectedExercise()?.name }}</h2>
+      <span>{{ metric() === 'weight' ? 'Peso máximo por día' : 'Volumen total por día (peso × reps)' }}</span>
+    </header>
+    @if (progress().length < 2) {
+      <p class="note">Con un solo día entrenado solo hay un punto. Entrena este ejercicio otro día para ver la tendencia.</p>
+    }
+    <div class="chart-wrap">
+      <canvas baseChart type="line" [data]="chartData()" [options]="chartOptions()"></canvas>
+    </div>
+  </section>
+
+  <!-- ── Historial ── -->
+  <section class="history">
+    <h2>Historial</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Fecha</th>
+          <th>Peso máximo</th>
+          <th>Volumen</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (point of history(); track point.date) {
+          <tr [class.record]="point.date === s.record.date">
+            <td>{{ point.date | date: "EEE d 'de' MMM y" }}</td>
+            <td>
+              {{ point.maxWeight | number: '1.0-2' }} kg
+              @if (point.date === s.record.date) {
+                <mat-icon class="record-icon">emoji_events</mat-icon>
+              }
+            </td>
+            <td>{{ point.totalVolume | number: '1.0-0' }} kg</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}

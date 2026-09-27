@@ -1,0 +1,150 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (loadError(); as error) {
+  <div class="state">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-stroked-button (click)="load()">Reintentar</button>
+  </div>
+} @else {
+  <!-- ── Resumen del mes ── -->
+  <div class="summary">
+    <div class="stat">
+      <mat-icon>fitness_center</mat-icon>
+      <div>
+        <span class="value">{{ monthSummary().sessions }}</span>
+        <span class="label">entrenos este mes</span>
+      </div>
+    </div>
+    <div class="stat">
+      <mat-icon>event_available</mat-icon>
+      <div>
+        <span class="value">{{ monthSummary().days }}</span>
+        <span class="label">días entrenados</span>
+      </div>
+    </div>
+    <div class="stat">
+      <mat-icon>timer</mat-icon>
+      <div>
+        <span class="value">{{ monthSummary().minutes * 60 | duration: 'short' }}</span>
+        <span class="label">tiempo registrado</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="layout">
+    <!-- ── Calendario ── -->
+    <section class="calendar">
+      <header class="calendar-header">
+        <h2>{{ monthDate() | date: 'MMMM y' }}</h2>
+        <div class="nav">
+          @if (!isCurrentMonth() || selectedDate() !== today) {
+            <button mat-button (click)="goToToday()">Hoy</button>
+          }
+          <button mat-icon-button (click)="previousMonth()" aria-label="Mes anterior">
+            <mat-icon>chevron_left</mat-icon>
+          </button>
+          <button mat-icon-button (click)="nextMonth()" [disabled]="isCurrentMonth()" aria-label="Mes siguiente">
+            <mat-icon>chevron_right</mat-icon>
+          </button>
+        </div>
+      </header>
+
+      <div class="weekdays" aria-hidden="true">
+        @for (weekday of weekdays; track weekday) {
+          <span>{{ weekday }}</span>
+        }
+      </div>
+
+      <div class="days">
+        @for (day of calendarDays(); track day.iso) {
+          <button
+            type="button"
+            class="day"
+            [class.outside]="!day.inMonth"
+            [class.today]="day.isToday"
+            [class.selected]="day.isSelected"
+            [class.trained]="day.sessions.length > 0"
+            [disabled]="day.isFuture"
+            [attr.aria-pressed]="day.isSelected"
+            [attr.aria-label]="(day.date | date: 'EEEE d MMMM') + (day.sessions.length ? ', ' + day.sessions.length + ' entreno(s)' : '')"
+            (click)="selectDay(day)">
+            <span class="day-number">{{ day.dayNumber }}</span>
+            @if (day.sessions.length > 0) {
+              <span class="day-label">{{ day.sessions[0].routineName ?? 'Libre' }}</span>
+              @if (day.sessions.length > 1) {
+                <span class="more">+{{ day.sessions.length - 1 }}</span>
+              }
+            }
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- ── Panel del día ── -->
+    <aside class="day-panel">
+      <header>
+        <span class="eyebrow">{{ selectedDate() === today ? 'Hoy' : 'Día seleccionado' }}</span>
+        <h2>{{ selectedDateObj() | date: "EEEE, d 'de' MMMM" }}</h2>
+      </header>
+
+      @if (selectedSessions().length > 0) {
+        <div class="session-list">
+          @for (session of selectedSessions(); track session.id) {
+            <a class="session-item" [routerLink]="['/gym/sessions', session.id]">
+              <span class="session-icon"><mat-icon>fitness_center</mat-icon></span>
+              <span class="session-info">
+                <strong>{{ session.routineName ?? 'Entreno libre' }}</strong>
+                <span>
+                  {{ session.durationMinutes ? (session.durationMinutes * 60 | duration: 'short') : 'Sin duración' }}
+                </span>
+              </span>
+              <mat-icon class="chevron">chevron_right</mat-icon>
+            </a>
+          }
+        </div>
+      } @else {
+        <p class="no-sessions">
+          <mat-icon>hotel</mat-icon>
+          Sin entrenos este día
+        </p>
+      }
+
+      <form class="create-form" [formGroup]="createForm" (ngSubmit)="createSession()">
+        <h3>Registrar entreno</h3>
+
+                <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
+          <mat-label>Rutina</mat-label>
+          <mat-select formControlName="routineId" placeholder="Entreno libre">
+            <mat-option [value]="null">Entreno libre</mat-option>
+            @for (routine of sortedRoutines(); track routine.id) {
+              <mat-option [value]="routine.id">
+                {{ routine.name }} · {{ routine.exercises.length }} ejercicios
+              </mat-option>
+            }
+          </mat-select>
+        </mat-form-field>
+
+        @if (routines().length === 0) {
+          <p class="hint">
+            ¿Sin rutinas? Puedes crearlas en <a routerLink="/gym/routines">Rutinas</a>, o entrenar en modo libre.
+          </p>
+        }
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+          <mat-label>Duración (minutos)</mat-label>
+          <input matInput type="number" formControlName="durationMinutes" min="1" max="600" placeholder="Opcional" />
+          <mat-hint>Puedes indicarla al terminar</mat-hint>
+          @if (createForm.controls.durationMinutes.hasError('min') || createForm.controls.durationMinutes.hasError('max')) {
+            <mat-error>Entre 1 y 600 minutos</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button type="submit" class="start-btn" [disabled]="creating()">
+          <mat-icon>play_arrow</mat-icon>
+          Empezar entreno
+        </button>
+      </form>
+    </aside>
+  </div>
+}

@@ -1,0 +1,71 @@
+<form class="builder" [formGroup]="form" (ngSubmit)="submit()">
+  <h3 class="builder-title">
+    <mat-icon>add_circle</mat-icon>
+    Nueva rutina
+  </h3>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Nombre de la rutina</mat-label>
+    <input matInput formControlName="name" placeholder="Ej: Empuje — pecho, hombro y tríceps" maxlength="100" />
+    @if (form.controls.name.hasError('required')) {
+      <mat-error>El nombre es obligatorio</mat-error>
+    } @else if (form.controls.name.hasError('minlength')) {
+      <mat-error>Mínimo 3 caracteres</mat-error>
+    }
+  </mat-form-field>
+
+  <mat-form-field appearance="outline" subscriptSizing="dynamic">
+    <mat-label>Añadir ejercicio</mat-label>
+    <mat-icon matPrefix>search</mat-icon>
+    <input
+      matInput
+      #exerciseInput
+      [matAutocomplete]="auto"
+      (input)="query.set(exerciseInput.value)"
+      placeholder="Busca por nombre o grupo muscular" />
+    <mat-autocomplete
+      #auto="matAutocomplete"
+      [autoActiveFirstOption]="true"
+      (optionSelected)="add($event, exerciseInput)">
+      @for (exercise of available(); track exercise.id) {
+        <mat-option [value]="exercise">
+          <span class="option-name">{{ exercise.name }}</span>
+          <span class="option-group">{{ exercise.muscleGroup }}</span>
+        </mat-option>
+      } @empty {
+        <mat-option disabled>
+          {{ exercises().length === 0 ? 'Crea primero algún ejercicio en el catálogo' : 'Sin resultados' }}
+        </mat-option>
+      }
+    </mat-autocomplete>
+  </mat-form-field>
+
+  @if (selected().length > 0) {
+    <ol class="selected-list" cdkDropList (cdkDropListDropped)="drop($event)">
+      @for (exercise of selected(); track exercise.id; let i = $index) {
+        <li class="selected-item" cdkDrag cdkDragLockAxis="y">
+          <mat-icon class="handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
+          <span class="position">{{ i + 1 }}</span>
+          <span class="name">{{ exercise.name }}</span>
+          <span class="group">{{ exercise.muscleGroup }}</span>
+          <button mat-icon-button type="button" (click)="removeAt(i)" [attr.aria-label]="'Quitar ' + exercise.name">
+            <mat-icon>close</mat-icon>
+          </button>
+          <div class="drag-placeholder" *cdkDragPlaceholder></div>
+        </li>
+      }
+    </ol>
+    <p class="drag-tip"><mat-icon>swap_vert</mat-icon> Arrastra desde el asa para cambiar el orden</p>
+  } @else {
+    <p class="hint" [class.error]="submitted()">Añade al menos un ejercicio a la rutina.</p>
+  }
+
+  <div class="builder-actions">
+    @if (selected().length > 0) {
+      <button mat-button type="button" (click)="reset()">Descartar</button>
+    }
+    <button mat-flat-button type="submit" [disabled]="saving()">
+      <mat-icon>save</mat-icon> Guardar rutina
+    </button>
+  </div>
+</form>

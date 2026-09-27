@@ -1,0 +1,39 @@
+<article class="card" [attr.data-tone]="tone()">
+  <header class="card-header">
+    <div class="title">
+      <h3>{{ habit().name }}</h3>
+      <span class="chip">{{ frequencyLabel() }}</span>
+    </div>
+
+    <button mat-icon-button [matMenuTriggerFor]="menu" aria-label="Más acciones">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu" xPosition="before">
+      <button mat-menu-item class="danger" (click)="remove.emit()">
+        <mat-icon>delete</mat-icon>
+        <span>Eliminar hábito</span>
+      </button>
+    </mat-menu>
+  </header>
+
+  @if (rank() === 'best') {
+    <span class="badge best"><mat-icon>emoji_events</mat-icon> Más constante</span>
+  } @else if (rank() === 'worst') {
+    <span class="badge worst"><mat-icon>trending_down</mat-icon> Necesita atención</span>
+  }
+
+  <div class="rate">
+    <span class="rate-value">{{ stats().completionRate | number: '1.0-1' }}<small>%</small></span>
+    <span class="rate-label">de cumplimiento</span>
+  </div>
+
+  <mat-progress-bar mode="determinate" [value]="stats().completionRate" />
+
+  <footer class="card-footer">
+    <span class="streak" [class.active]="stats().currentStreak > 0">
+      <mat-icon>local_fire_department</mat-icon>
+      <strong>{{ stats().currentStreak }}</strong> racha actual
+    </span>
+    <span class="count">{{ stats().completedLogs }} completados</span>
+  </footer>
+</article>

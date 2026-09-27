@@ -1,0 +1,247 @@
+:host {
+  display: block;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  padding: 20px;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.panel-header {
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+
+  p {
+    margin: 2px 0 0;
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+// ── Catálogo ────────────────────────────────────────────
+.exercise-form {
+  display: flex;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.name-field {
+  flex: 1 1 180px;
+}
+
+.group-field {
+  flex: 1 1 160px;
+}
+
+.add-btn {
+  height: 56px;
+}
+
+.search {
+  width: 100%;
+
+  mat-icon[matPrefix] {
+    margin: 0 8px 0 12px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.groups {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-height: 520px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.group-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  font: var(--mat-sys-label-large);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--mat-sys-primary);
+}
+
+.group-count {
+  padding: 0 8px;
+  border-radius: 999px;
+  background: var(--mat-sys-primary-container);
+  color: var(--mat-sys-on-primary-container);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+// Chip-botón: parece una etiqueta, pero es un <button> real (foco, teclado, lector de pantalla)
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 6px 6px 12px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: var(--mat-sys-surface-container-highest);
+  color: var(--mat-sys-on-surface);
+  font: var(--mat-sys-body-medium);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+
+  &:hover:not(:disabled),
+  &[aria-expanded='true'] {
+    background: var(--mat-sys-secondary-container);
+    border-color: var(--mat-sys-outline-variant);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: 1px;
+  }
+
+  &.busy {
+    opacity: 0.5;
+    cursor: progress;
+  }
+}
+
+.chip-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--mat-sys-on-surface-variant);
+}
+
+// ── Rutinas ─────────────────────────────────────────────
+.routine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.routine-card {
+  padding: 14px 8px 16px 16px;
+  border-radius: 16px;
+  background: var(--mat-sys-surface);
+  border: 1px solid var(--mat-sys-outline-variant);
+  transition: opacity 0.2s ease;
+
+  &.deleting {
+    opacity: 0.5;
+  }
+}
+
+.routine-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.routine-info {
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+  }
+
+  .meta {
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.routine-exercises {
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+
+  li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 12px 4px 4px;
+    border-radius: 999px;
+    background: var(--mat-sys-secondary-container);
+    color: var(--mat-sys-on-secondary-container);
+    font: var(--mat-sys-label-large);
+  }
+
+  .n {
+    display: grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--mat-sys-surface);
+    color: var(--mat-sys-on-surface);
+    font: var(--mat-sys-label-small);
+  }
+}
+
+.danger,
+.danger mat-icon {
+  color: var(--mat-sys-error);
+}
+
+// ── Estados ─────────────────────────────────────────────
+.empty {
+  margin: 0;
+  padding: 20px;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  p {
+    margin: 0;
+  }
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}

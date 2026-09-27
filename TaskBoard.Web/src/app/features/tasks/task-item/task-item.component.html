@@ -1,0 +1,83 @@
+<article class="task" [class.done]="task().isDone" [class.running]="isRunning()">
+  <mat-checkbox
+    [checked]="task().isDone"
+    [disabled]="busy()"
+    (change)="toggleDone.emit()"
+    [aria-label]="task().isDone ? 'Marcar como pendiente' : 'Marcar como completada'" />
+
+  <div class="body">
+    @if (editing()) {
+      <div class="edit-row">
+        <input
+          #titleInput
+          class="title-input"
+          [class.invalid]="editError()"
+          [value]="task().title"
+          maxlength="200"
+          (keydown.enter)="saveEdit(titleInput.value)"
+          (keydown.escape)="cancelEdit()" />
+        <button mat-icon-button (click)="saveEdit(titleInput.value)" aria-label="Guardar">
+          <mat-icon>check</mat-icon>
+        </button>
+        <button mat-icon-button (click)="cancelEdit()" aria-label="Cancelar">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+      @if (editError()) {
+        <span class="edit-error">El título necesita al menos 3 caracteres</span>
+      }
+    } @else {
+      <span class="title" (dblclick)="startEdit()" matTooltip="Doble clic para editar" matTooltipShowDelay="600">
+        {{ task().title }}
+      </span>
+      <span class="meta">
+        Creada el {{ task().createdAt | date: "d MMM, HH:mm" }}
+        @if (entries().length > 0) {
+          · {{ entries().length }} {{ entries().length === 1 ? 'sesión' : 'sesiones' }}
+        }
+      </span>
+    }
+  </div>
+
+  <div class="timer">
+    @if (isRunning()) {
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="session" aria-live="off">{{ sessionSeconds() | duration }}</span>
+    }
+    @if (totalSeconds() > 0) {
+      <span class="total" matTooltip="Tiempo total invertido">
+        <mat-icon>schedule</mat-icon>{{ totalSeconds() | duration: 'short' }}
+      </span>
+    }
+  </div>
+
+  <div class="actions">
+    @if (activeEntry(); as active) {
+      <button mat-flat-button class="stop" [disabled]="busy()" (click)="stopTimer.emit(active.id)">
+        <mat-icon>stop</mat-icon> Parar
+      </button>
+    } @else {
+      <button
+        mat-stroked-button
+        [disabled]="busy() || task().isDone"
+        (click)="startTimer.emit()"
+        [matTooltip]="task().isDone ? 'La tarea ya está completada' : ''">
+        <mat-icon>play_arrow</mat-icon> Iniciar
+      </button>
+    }
+
+    <button mat-icon-button [matMenuTriggerFor]="menu" [disabled]="busy()" aria-label="Más acciones">
+      <mat-icon>more_vert</mat-icon>
+    </button>
+    <mat-menu #menu="matMenu" xPosition="before">
+      <button mat-menu-item (click)="startEdit()">
+        <mat-icon>edit</mat-icon>
+        <span>Editar título</span>
+      </button>
+      <button mat-menu-item class="danger" (click)="remove.emit()">
+        <mat-icon>delete</mat-icon>
+        <span>Eliminar</span>
+      </button>
+    </mat-menu>
+  </div>
+</article>

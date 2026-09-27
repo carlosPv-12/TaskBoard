@@ -1,0 +1,31 @@
+<h2 mat-dialog-title>Editar ejercicio</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="content">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" maxlength="100" cdkFocusInitial />
+      @if (form.controls.name.hasError('duplicate')) {
+        <mat-error>Ya existe un ejercicio con ese nombre</mat-error>
+      } @else if (form.controls.name.hasError('required')) {
+        <mat-error>El nombre es obligatorio</mat-error>
+      } @else if (form.controls.name.hasError('minlength')) {
+        <mat-error>Mínimo 2 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <mat-form-field appearance="outline">
+      <mat-label>Grupo muscular</mat-label>
+      <mat-select formControlName="muscleGroup">
+        @for (group of muscleGroups; track group) {
+          <mat-option [value]="group">{{ group }}</mat-option>
+        }
+      </mat-select>
+    </mat-form-field>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Cancelar</button>
+    <button mat-flat-button type="submit">Guardar cambios</button>
+  </mat-dialog-actions>
+</form>

@@ -1,0 +1,158 @@
+:host {
+  display: block;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+}
+
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.position {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: var(--mat-sys-primary);
+  color: var(--mat-sys-on-primary);
+  font: var(--mat-sys-title-small);
+}
+
+.title {
+  flex: 1;
+  min-width: 0;
+
+  h3 {
+    margin: 0;
+    font: var(--mat-sys-title-medium);
+  }
+
+  .meta {
+    font: var(--mat-sys-body-small);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+// ── Tabla de series ─────────────────────────────────────
+.sets {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+
+  th {
+    padding: 0 8px 6px;
+    text-align: left;
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  td {
+    padding: 2px 8px;
+    height: 40px;
+    font: var(--mat-sys-body-large);
+    border-bottom: 1px solid var(--mat-sys-outline-variant);
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+
+  tr.best td {
+    background: var(--mat-sys-primary-container);
+    color: var(--mat-sys-on-primary-container);
+  }
+
+  tr.best td:first-child {
+    border-radius: 10px 0 0 10px;
+  }
+
+  tr.best td:last-child {
+    border-radius: 0 10px 10px 0;
+  }
+
+  .actions {
+    width: 48px;
+    text-align: right;
+  }
+}
+
+.set-number {
+  white-space: nowrap;
+}
+
+.best-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+  color: #f9a825;
+}
+
+.muted {
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.no-sets {
+  margin: 0;
+  padding: 14px;
+  text-align: center;
+  border-radius: 12px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  font: var(--mat-sys-body-medium);
+}
+
+// ── Formulario de nueva serie ───────────────────────────
+.set-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.field {
+  flex: 1;
+  min-width: 0;
+}
+
+.times {
+  font: var(--mat-sys-title-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.add-set {
+  height: 56px;
+  flex-shrink: 0;
+}
+
+.form-error {
+  margin: -4px 0 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-error);
+}
+
+.danger,
+.danger mat-icon {
+  color: var(--mat-sys-error);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

@@ -1,0 +1,155 @@
+@if (loading()) {
+  <mat-progress-bar mode="indeterminate" />
+} @else if (loadError(); as error) {
+  <div class="state">
+    <mat-icon>cloud_off</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-stroked-button (click)="load()">Reintentar</button>
+  </div>
+} @else {
+  <div class="layout">
+    <!-- ── Catálogo de ejercicios ── -->
+    <section class="panel">
+      <header class="panel-header">
+        <h2>Ejercicios</h2>
+        <p>{{ exercises().length }} en el catálogo · pulsa uno para editarlo o eliminarlo</p>
+      </header>
+
+      <form class="exercise-form" [formGroup]="exerciseForm" (ngSubmit)="createExercise()">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="name-field">
+          <mat-label>Nombre</mat-label>
+          <input matInput formControlName="name" placeholder="Ej: Press banca" maxlength="100" />
+          @if (exerciseForm.controls.name.hasError('duplicate')) {
+            <mat-error>Ya existe un ejercicio con ese nombre</mat-error>
+          } @else if (exerciseForm.controls.name.hasError('required')) {
+            <mat-error>El nombre es obligatorio</mat-error>
+          } @else if (exerciseForm.controls.name.hasError('minlength')) {
+            <mat-error>Mínimo 2 caracteres</mat-error>
+          }
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" subscriptSizing="dynamic" class="group-field">
+          <mat-label>Grupo muscular</mat-label>
+          <mat-select formControlName="muscleGroup">
+            @for (group of muscleGroups; track group) {
+              <mat-option [value]="group">{{ group }}</mat-option>
+            }
+          </mat-select>
+          @if (exerciseForm.controls.muscleGroup.hasError('required')) {
+            <mat-error>Elige un grupo</mat-error>
+          }
+        </mat-form-field>
+
+        <button mat-flat-button type="submit" class="add-btn" [disabled]="creatingExercise()">
+          <mat-icon>add</mat-icon> Añadir
+        </button>
+      </form>
+
+      <mat-form-field appearance="outline" subscriptSizing="dynamic" class="search">
+        <mat-icon matPrefix>search</mat-icon>
+        <input
+          matInput
+          placeholder="Buscar por nombre o grupo"
+          [value]="search()"
+          (input)="search.set($any($event.target).value)" />
+        @if (search()) {
+          <button mat-icon-button matSuffix (click)="search.set('')" aria-label="Limpiar búsqueda">
+            <mat-icon>close</mat-icon>
+          </button>
+        }
+      </mat-form-field>
+
+      <div class="groups">
+        @for (item of exerciseGroups(); track item.group) {
+          <div class="group">
+            <h3 class="group-title">
+              {{ item.group }}
+              <span class="group-count">{{ item.exercises.length }}</span>
+            </h3>
+            <div class="chips">
+              @for (exercise of item.exercises; track exercise.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.busy]="busyExerciseIds().has(exercise.id)"
+                  [disabled]="busyExerciseIds().has(exercise.id)"
+                  [matMenuTriggerFor]="exerciseMenu"
+                  [attr.aria-label]="'Acciones para ' + exercise.name">
+                  {{ exercise.name }}
+                  <mat-icon class="chip-icon">expand_more</mat-icon>
+                </button>
+                <mat-menu #exerciseMenu="matMenu">
+                  <button mat-menu-item (click)="editExercise(exercise)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
+                  <button mat-menu-item class="danger" (click)="deleteExercise(exercise)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Eliminar</span>
+                  </button>
+                </mat-menu>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="empty">
+            {{ search() ? 'Ningún ejercicio coincide con la búsqueda.' : 'El catálogo está vacío. Añade tu primer ejercicio.' }}
+          </p>
+        }
+      </div>
+    </section>
+
+    <!-- ── Rutinas ── -->
+    <section class="panel">
+      <header class="panel-header">
+        <h2>Rutinas</h2>
+        <p>Plantillas reutilizables para tus entrenos</p>
+      </header>
+
+      <app-routine-builder
+        [exercises]="sortedExercises()"
+        [saving]="savingRoutine()"
+        (save)="saveRoutine($event)" />
+
+      <div class="routine-list">
+        @for (routine of sortedRoutines(); track routine.id) {
+          <article class="routine-card" [class.deleting]="deletingRoutineIds().has(routine.id)">
+            <header class="routine-header">
+              <div class="routine-info">
+                <h3>{{ routine.name }}</h3>
+                <span class="meta">
+                  {{ routine.exercises.length }} {{ routine.exercises.length === 1 ? 'ejercicio' : 'ejercicios' }}
+                  · creada el {{ routine.createdAt | date: 'd MMM y' }}
+                </span>
+              </div>
+              <button
+                mat-icon-button
+                [matMenuTriggerFor]="routineMenu"
+                [disabled]="deletingRoutineIds().has(routine.id)"
+                aria-label="Más acciones">
+                <mat-icon>more_vert</mat-icon>
+              </button>
+              <mat-menu #routineMenu="matMenu" xPosition="before">
+                <button mat-menu-item class="danger" (click)="deleteRoutine(routine)">
+                  <mat-icon>delete</mat-icon>
+                  <span>Eliminar rutina</span>
+                </button>
+              </mat-menu>
+            </header>
+
+            <ol class="routine-exercises">
+              @for (item of routine.exercises; track item.order) {
+                <li>
+                  <span class="n">{{ $index + 1 }}</span>
+                  {{ item.exerciseName }}
+                </li>
+              }
+            </ol>
+          </article>
+        } @empty {
+          <p class="empty">Todavía no tienes rutinas. Crea la primera con el formulario de arriba.</p>
+        }
+      </div>
+    </section>
+  </div>
+}

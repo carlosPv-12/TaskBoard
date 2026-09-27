@@ -1,0 +1,282 @@
+:host {
+  display: block;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.page-header {
+  h1 {
+    margin: 0;
+    font: var(--mat-sys-headline-medium);
+  }
+
+  .subtitle {
+    margin: 4px 0 0;
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+// ── Formulario ──────────────────────────────────────────
+.create-form {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.create-field {
+  flex: 1;
+
+  mat-icon[matPrefix] {
+    margin: 0 8px 0 12px;
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.frequency {
+  height: 56px;
+  align-items: center;
+}
+
+.create-btn {
+  height: 56px;
+  padding: 0 24px;
+}
+
+// ── Panel de la rejilla ─────────────────────────────────
+.panel {
+  border-radius: 20px;
+  background: var(--mat-sys-surface-container-low);
+  border: 1px solid var(--mat-sys-outline-variant);
+  overflow: hidden;
+}
+
+.panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  padding: 12px 12px 8px 20px;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+}
+
+.week-nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.week-label {
+  min-width: 150px;
+  text-align: center;
+  font: var(--mat-sys-title-small);
+  text-transform: capitalize;
+}
+
+.loading-slot {
+  height: 4px;
+}
+
+.grid-scroll {
+  overflow-x: auto;
+  padding: 0 12px 12px;
+}
+
+.grid {
+  min-width: 560px;
+}
+
+.grid-row {
+  display: grid;
+  grid-template-columns: minmax(160px, 1.8fr) repeat(7, minmax(48px, 1fr));
+  align-items: center;
+  border-bottom: 1px solid var(--mat-sys-outline-variant);
+
+  &:last-child {
+    border-bottom: none;
+  }
+
+  &.head {
+    font: var(--mat-sys-label-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.cell-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 8px;
+  min-width: 0;
+}
+
+.habit-name {
+  font: var(--mat-sys-title-small);
+  color: var(--mat-sys-on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.habit-meta {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.cell-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  padding: 8px 0;
+
+  &.today {
+    background: var(--mat-sys-surface-container-high);
+  }
+
+  .dow {
+    text-transform: capitalize;
+  }
+
+  .dom {
+    font: var(--mat-sys-title-medium);
+    color: var(--mat-sys-on-surface);
+  }
+}
+
+.head .cell-day.today {
+  border-radius: 12px 12px 0 0;
+
+  .dom {
+    color: var(--mat-sys-primary);
+  }
+}
+
+// ── Botón de cada día ───────────────────────────────────
+.check {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  border: 2px solid var(--mat-sys-outline);
+  color: var(--mat-sys-on-primary);
+  transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.1s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--mat-sys-primary);
+    background: var(--mat-sys-primary-container);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.92);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: 2px;
+  }
+
+  &.done {
+    background: var(--mat-sys-primary);
+    border-color: var(--mat-sys-primary);
+
+    &:hover:not(:disabled) {
+      background: var(--mat-sys-primary);
+      opacity: 0.85;
+    }
+  }
+
+  &.pending {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    border-style: dashed;
+    border-color: var(--mat-sys-outline-variant);
+    opacity: 0.45;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// ── Estadísticas ────────────────────────────────────────
+.section-title {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-top: 8px;
+
+  h2 {
+    margin: 0;
+    font: var(--mat-sys-title-large);
+  }
+
+  span {
+    font: var(--mat-sys-body-medium);
+    color: var(--mat-sys-on-surface-variant);
+  }
+}
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+// ── Estados vacío / error ──────────────────────────────
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 48px 16px;
+  border-radius: 16px;
+  border: 1px dashed var(--mat-sys-outline-variant);
+  color: var(--mat-sys-on-surface-variant);
+  text-align: center;
+
+  mat-icon {
+    font-size: 40px;
+    width: 40px;
+    height: 40px;
+  }
+
+  p {
+    margin: 0;
+    font: var(--mat-sys-body-large);
+  }
+}
+
+@media (max-width: 720px) {
+  .create-form {
+    flex-wrap: wrap;
+  }
+
+  .create-field {
+    flex-basis: 100%;
+  }
+
+  .create-btn {
+    flex: 1;
+  }
+}

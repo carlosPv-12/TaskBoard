@@ -1,0 +1,18 @@
+<section class="gym">
+  <h1>Gimnasio</h1>
+
+  <nav mat-tab-nav-bar [tabPanel]="tabPanel" mat-stretch-tabs="false" mat-align-tabs="start">
+    @for (tab of tabs; track tab.path) {
+      <a mat-tab-link [routerLink]="tab.path" routerLinkActive #rla="routerLinkActive" [active]="rla.isActive">
+        <mat-icon class="tab-icon">{{ tab.icon }}</mat-icon>
+        {{ tab.label }}
+      </a>
+    }
+  </nav>
+
+  <mat-tab-nav-panel #tabPanel>
+    <div class="gym-content">
+      <router-outlet />
+    </div>
+  </mat-tab-nav-panel>
+</section>

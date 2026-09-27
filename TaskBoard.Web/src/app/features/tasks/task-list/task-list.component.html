@@ -1,0 +1,73 @@
+<section class="page">
+  <header class="page-header">
+    <div>
+      <h1>Tareas</h1>
+      <p class="subtitle">
+        {{ pendingCount() }} pendientes · {{ doneCount() }} completadas ·
+        {{ totalTrackedSeconds() | duration: 'short' }} registradas
+      </p>
+    </div>
+
+    @if (runningCount() > 0) {
+      <div class="running-badge">
+        <span class="live-dot" aria-hidden="true"></span>
+        {{ runningCount() }} {{ runningCount() === 1 ? 'cronómetro en marcha' : 'cronómetros en marcha' }}
+      </div>
+    }
+  </header>
+
+  <form class="create-form" [formGroup]="createForm" (ngSubmit)="create()">
+    <mat-form-field appearance="outline" class="create-field" subscriptSizing="dynamic">
+      <mat-label>Nueva tarea</mat-label>
+      <mat-icon matPrefix>add_task</mat-icon>
+      <input matInput formControlName="title" placeholder="¿Qué tienes que hacer?" maxlength="200" />
+      @if (createForm.controls.title.hasError('minlength')) {
+        <mat-error>Mínimo 3 caracteres</mat-error>
+      }
+    </mat-form-field>
+    <button mat-flat-button type="submit" class="create-btn" [disabled]="creating()">
+      <mat-icon>add</mat-icon> Añadir
+    </button>
+  </form>
+
+  <mat-button-toggle-group
+    class="filters"
+    [value]="statusFilter()"
+    (change)="statusFilter.set($event.value)"
+    hideSingleSelectionIndicator
+    aria-label="Filtrar tareas">
+    <mat-button-toggle value="all">Todas · {{ tasks().length }}</mat-button-toggle>
+    <mat-button-toggle value="pending">Pendientes · {{ pendingCount() }}</mat-button-toggle>
+    <mat-button-toggle value="done">Completadas · {{ doneCount() }}</mat-button-toggle>
+  </mat-button-toggle-group>
+
+  @if (loading()) {
+    <mat-progress-bar mode="indeterminate" />
+  } @else if (loadError(); as error) {
+    <div class="state">
+      <mat-icon>cloud_off</mat-icon>
+      <p>{{ error }}</p>
+      <button mat-stroked-button (click)="load()">Reintentar</button>
+    </div>
+  } @else {
+    <div class="task-list">
+      @for (task of visibleTasks(); track task.id) {
+        <app-task-item
+          [task]="task"
+          [entries]="entriesFor(task.id)"
+          [now]="now()"
+          [busy]="busyIds().has(task.id)"
+          (toggleDone)="toggleDone(task)"
+          (rename)="rename(task, $event)"
+          (remove)="remove(task)"
+          (startTimer)="startTimer(task)"
+          (stopTimer)="stopTimer(task, $event)" />
+      } @empty {
+        <div class="state">
+          <mat-icon>task_alt</mat-icon>
+          <p>{{ emptyMessage() }}</p>
+        </div>
+      }
+    </div>
+  }
+</section>
