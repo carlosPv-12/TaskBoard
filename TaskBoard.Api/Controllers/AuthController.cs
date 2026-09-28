@@ -5,11 +5,13 @@ using TaskBoard.Api.Data;
 using TaskBoard.Api.Dtos;
 using TaskBoard.Api.Models;
 using TaskBoard.Api.Services;
+using Microsoft.AspNetCore.RateLimiting;
 
 namespace TaskBoard.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[EnableRateLimiting("auth")]
 public class AuthController : ControllerBase
 {
     private readonly AppDbContext _context;

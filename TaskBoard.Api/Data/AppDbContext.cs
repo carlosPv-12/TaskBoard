@@ -23,9 +23,11 @@ public class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<WorkoutSet>()
-            .Property(s => s.Weight)
-            .HasPrecision(18, 2);
+        modelBuilder.Entity<Exercise>()
+            .HasOne<User>()
+            .WithMany()
+            .HasForeignKey(e => e.UserId)
+            .OnDelete(DeleteBehavior.Restrict); // evita el error "multiple cascade paths" de SQL Server
     }
 
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)

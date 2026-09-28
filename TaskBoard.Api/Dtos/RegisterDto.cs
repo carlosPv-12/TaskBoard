@@ -6,9 +6,11 @@ public class RegisterDto
 {
     [Required]
     [EmailAddress]
+    [MaxLength(256)]
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [MinLength(6)]
+    [MinLength(8, ErrorMessage = "La contraseña debe tener al menos 8 caracteres.")]
+    [MaxLength(100)]
     public string Password { get; set; } = string.Empty;
 }
