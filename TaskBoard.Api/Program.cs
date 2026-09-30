@@ -12,10 +12,6 @@ using Microsoft.AspNetCore.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
-// Add services to the container.
-
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
@@ -47,9 +43,25 @@ builder.Services.AddSwaggerGen(options =>
         }
     });
 });
+
+// Reintentos: en el primer arranque el contenedor de SQL Server puede tardar
+// unos segundos en aceptar conexiones. Sin esto, el backend caería y se reiniciaría en bucle.
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sql => sql.EnableRetryOnFailure(
+            maxRetryCount: 10,
+            maxRetryDelay: TimeSpan.FromSeconds(5),
+            errorNumbersToAdd: null)));
+
 builder.Services.AddScoped<TokenService>();
+
+// Fallo rápido y con mensaje claro si falta el secreto
+var jwtKey = builder.Configuration["Jwt:Key"];
+if (string.IsNullOrWhiteSpace(jwtKey))
+    throw new InvalidOperationException(
+        "Falta Jwt:Key. En producción defínela con la variable de entorno Jwt__Key.");
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -66,8 +78,7 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(
-            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
     };
 });
 
@@ -81,8 +92,8 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("Frontend", policy =>
         policy.WithOrigins(allowedOrigins)
-              .AllowAnyHeader()   // necesario para "Authorization" y "Content-Type"
-              .AllowAnyMethod()); // GET, POST, PUT, DELETE
+              .AllowAnyHeader()
+              .AllowAnyMethod());
 });
 
 builder.Services.AddRateLimiter(o =>
@@ -100,9 +111,15 @@ builder.Services.AddRateLimiter(o =>
 
 var app = builder.Build();
 
+// Aplica las migraciones pendientes al arrancar (crea las tablas en la BD vacía de producción)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
