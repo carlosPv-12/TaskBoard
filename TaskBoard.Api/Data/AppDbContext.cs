@@ -21,15 +21,19 @@ public class AppDbContext : DbContext
     public DbSet<SessionExercise> SessionExercises { get; set; }
     public DbSet<WorkoutSet> WorkoutSets { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Exercise>()
-            .HasOne<User>()
-            .WithMany()
-            .HasForeignKey(e => e.UserId)
-            .OnDelete(DeleteBehavior.Restrict); // evita el error "multiple cascade paths" de SQL Server
-    }
+   protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.Entity<Exercise>()
+        .HasOne<User>()
+        .WithMany()
+        .HasForeignKey(e => e.UserId)
+        .OnDelete(DeleteBehavior.Restrict); // evita el error "multiple cascade paths" de SQL Server
 
+    // Precisión explícita del peso: hasta 999.999,99 (equivale a @Column(precision = 8, scale = 2) en JPA)
+    modelBuilder.Entity<WorkoutSet>()
+        .Property(s => s.Weight)
+        .HasPrecision(8, 2);
+}
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {
             configurationBuilder.Properties<DateTime>().HaveConversion<UtcDateTimeConverter>();
