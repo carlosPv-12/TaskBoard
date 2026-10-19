@@ -73,47 +73,65 @@
           }
         </div>
 
-        @for (row of rows(); track row.habit.id) {
-          <div class="grid-row" role="row">
-            <div class="cell-name" role="rowheader">
-              <div class="name-text">
-                <span class="habit-name">{{ row.habit.name }}</span>
-                <span class="habit-meta">{{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/7</span>
-              </div>
-              <button
-                mat-icon-button
-                class="row-menu"
-                [matMenuTriggerFor]="habitMenu"
-                [attr.aria-label]="'Acciones para ' + row.habit.name">
-                <mat-icon>more_vert</mat-icon>
-              </button>
-              <mat-menu #habitMenu="matMenu">
-                <button mat-menu-item class="danger" (click)="remove(row.habit)">
-                  <mat-icon>delete</mat-icon>
-                  <span>Eliminar hábito</span>
-                </button>
-              </mat-menu>
-            </div>
-
-            @for (cell of row.cells; track cell.key) {
-              <div class="cell-day" [class.today]="cell.isToday" role="gridcell">
+        <div
+          class="rows"
+          role="rowgroup"
+          cdkDropList
+          [cdkDropListDisabled]="reordering()"
+          (cdkDropListDropped)="drop($event)">
+          @for (row of rows(); track row.habit.id; let i = $index) {
+            <div class="grid-row" role="row" cdkDrag cdkDragLockAxis="y" [cdkDragDisabled]="rows().length < 2">
+              <div class="cell-name" role="rowheader">
                 <button
                   type="button"
-                  class="check"
-                  [class.done]="cell.done"
-                  [class.pending]="cell.pending"
-                  [disabled]="cell.disabled"
-                  [attr.aria-pressed]="cell.done"
-                  [attr.aria-label]="row.habit.name + ', ' + cell.iso"
-                  (click)="toggle(row.habit.id, cell)">
-                  @if (cell.done) {
-                    <mat-icon>check</mat-icon>
-                  }
+                  class="drag-handle"
+                  cdkDragHandle
+                  [disabled]="rows().length < 2"
+                  [attr.data-handle]="row.habit.id"
+                  [attr.aria-label]="'Reordenar ' + row.habit.name + ': arrastra o usa las flechas arriba y abajo'"
+                  (keydown.arrowup)="moveWithKeyboard($event, i, -1, row.habit.id)"
+                  (keydown.arrowdown)="moveWithKeyboard($event, i, 1, row.habit.id)">
+                  <mat-icon>drag_indicator</mat-icon>
                 </button>
+                <div class="name-text">
+                  <span class="habit-name">{{ row.habit.name }}</span>
+                  <span class="habit-meta">{{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/7</span>
+                </div>
+                <button
+                  mat-icon-button
+                  class="row-menu"
+                  [matMenuTriggerFor]="habitMenu"
+                  [attr.aria-label]="'Acciones para ' + row.habit.name">
+                  <mat-icon>more_vert</mat-icon>
+                </button>
+                <mat-menu #habitMenu="matMenu">
+                  <button mat-menu-item class="danger" (click)="remove(row.habit)">
+                    <mat-icon>delete</mat-icon>
+                    <span>Eliminar hábito</span>
+                  </button>
+                </mat-menu>
               </div>
-            }
-          </div>
-        }
+
+              @for (cell of row.cells; track cell.key) {
+                <div class="cell-day" [class.today]="cell.isToday" role="gridcell">
+                  <button
+                    type="button"
+                    class="check"
+                    [class.done]="cell.done"
+                    [class.pending]="cell.pending"
+                    [disabled]="cell.disabled"
+                    [attr.aria-pressed]="cell.done"
+                    [attr.aria-label]="row.habit.name + ', ' + cell.iso"
+                    (click)="toggle(row.habit.id, cell)">
+                    @if (cell.done) {
+                      <mat-icon>check</mat-icon>
+                    }
+                  </button>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
     </div>
   </div>

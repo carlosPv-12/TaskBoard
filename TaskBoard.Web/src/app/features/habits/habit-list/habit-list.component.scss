@@ -159,6 +159,67 @@
   }
 }
 
+// ── Ordenar arrastrando ─────────────────────────────────
+.drag-handle {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--mat-sys-outline);
+  cursor: grab;
+  touch-action: none; // sin esto, en móvil el navegador hace scroll en vez de arrastrar
+  transition: color 0.15s ease, background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    color: var(--mat-sys-on-surface);
+    background: var(--mat-sys-surface-container-high);
+  }
+
+  &:focus-visible {
+    outline: 3px solid var(--mat-sys-primary);
+    outline-offset: 1px;
+  }
+
+  &:active:not(:disabled) {
+    cursor: grabbing;
+  }
+
+  &:disabled {
+    cursor: default;
+    opacity: 0.3;
+  }
+
+  mat-icon {
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+// Fila que se lleva en la mano (CDK la clona al <body>, los estilos con scope siguen aplicando)
+.grid-row.cdk-drag-preview {
+  box-sizing: border-box;
+  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 14px;
+  background: var(--mat-sys-surface-container-high);
+  box-shadow: var(--mat-sys-level3);
+}
+
+// Hueco que deja la fila mientras se arrastra
+.grid-row.cdk-drag-placeholder {
+  opacity: 0.25;
+}
+
+.grid-row.cdk-drag-animating,
+.rows.cdk-drop-list-dragging .grid-row:not(.cdk-drag-placeholder) {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}
+
 // ── Botón de cada día ───────────────────────────────────
 .check {
   width: 36px;

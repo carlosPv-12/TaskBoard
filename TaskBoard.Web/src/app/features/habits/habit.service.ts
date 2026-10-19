@@ -21,6 +21,11 @@ export class HabitService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
+  /** Guarda el orden: recibe los IDs de TODOS los hábitos del usuario, en el orden deseado. */
+  reorder(habitIds: number[]): Observable<void> {
+    return this.http.put<void>(`${this.baseUrl}/reorder`, { habitIds });
+  }
+
   /** Logs de todos los hábitos del usuario entre dos fechas (incluidas). */
   getLogs(from: string, to: string): Observable<HabitLog[]> {
     return this.http.get<HabitLog[]>(`${this.baseUrl}/logs`, { params: { from, to } });

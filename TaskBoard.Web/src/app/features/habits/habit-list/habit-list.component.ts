@@ -1,9 +1,10 @@
-import { Component, computed, inject, signal, viewChild } from '@angular/core';
+import { Component, Injector, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, filter, finalize, of, switchMap, tap } from 'rxjs';
+import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatDialog } from '@angular/material/dialog';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -45,7 +46,7 @@ interface HabitRow {
 
 const logKey = (habitId: number, iso: string) => `${habitId}|${iso}`;
 
-/** Pantalla "Semana": crear hábitos, marcar días y eliminar. Las estadísticas viven en su propia pestaña. */
+/** Pantalla "Semana": crear hábitos, marcar días, reordenar (arrastrando) y eliminar. Las estadísticas viven en su propia pestaña. */
 @Component({
   selector: 'app-habit-list',
   imports: [
@@ -57,7 +58,10 @@ const logKey = (habitId: number, iso: string) => `${habitId}|${iso}`;
     MatButtonToggleModule,
     MatIconModule,
     MatMenuModule,
-    MatProgressBarModule
+    MatProgressBarModule,
+    CdkDropList,
+    CdkDrag,
+    CdkDragHandle
   ],
   templateUrl: './habit-list.component.html',
   styleUrl: './habit-list.component.scss'
@@ -67,6 +71,7 @@ export class HabitListComponent {
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
   private readonly fb = inject(FormBuilder);
+  private readonly injector = inject(Injector);
 
   /** Directiva del <form>: resetForm() limpia valores, "touched" Y el estado "submitted". */
   private readonly formDir = viewChild.required(FormGroupDirective);
@@ -81,6 +86,8 @@ export class HabitListComponent {
   readonly loadError = signal<string | null>(null);
   readonly logsLoading = signal(false);
   readonly creating = signal(false);
+  /** true mientras se guarda un reordenamiento: evita lanzar otro encima (carreras). */
+  readonly reordering = signal(false);
   readonly pendingCells = signal<ReadonlySet<string>>(new Set());
   readonly weekStart = signal(startOfWeek(this.today));
 
@@ -241,6 +248,51 @@ export class HabitListComponent {
         },
         error: () => this.notify('No se pudo eliminar el hábito.')
       });
+  }
+
+  // ── Ordenación ──────────────────────────────────────────
+  /** Soltar tras arrastrar (ratón o dedo). */
+  drop(event: CdkDragDrop<HabitRow[]>): void {
+    this.moveHabit(event.previousIndex, event.currentIndex);
+  }
+
+  /** Alternativa accesible al arrastre: flechas ↑ / ↓ con el foco en el asa. */
+  moveWithKeyboard(event: Event, index: number, delta: -1 | 1, habitId: number): void {
+    event.preventDefault();
+    if (!this.moveHabit(index, index + delta)) return;
+
+    // Al reordenar, Angular mueve el nodo del DOM y el navegador pierde el foco: lo devolvemos al asa.
+    afterNextRender(
+      () => document.querySelector<HTMLElement>(`[data-handle="${habitId}"]`)?.focus(),
+      { injector: this.injector }
+    );
+  }
+
+  /** Actualización optimista: se reordena al instante y, si el PUT falla, se vuelve al orden anterior. */
+  private moveHabit(from: number, to: number): boolean {
+    const previous = this.habits();
+    if (this.reordering() || from === to || to < 0 || to >= previous.length) return false;
+
+    const next = [...previous];
+    moveItemInArray(next, from, to);
+    this.habits.set(next);
+    this.reordering.set(true);
+
+    this.habitService
+      .reorder(next.map(h => h.id))
+      .pipe(finalize(() => this.reordering.set(false)))
+      .subscribe({
+        error: (error: HttpErrorResponse) => {
+          this.habits.set(previous);
+          this.notify(this.apiError(error, 'No se pudo guardar el nuevo orden.'));
+          // 400 = nuestra lista no coincide con la del servidor (p. ej. otro dispositivo creó o borró un hábito)
+          if (error.status === 400) {
+            this.habitService.getAll().subscribe({ next: habits => this.habits.set(habits) });
+          }
+        }
+      });
+
+    return true;
   }
 
   // ── Utilidades privadas ─────────────────────────────────
