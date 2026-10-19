@@ -13,6 +13,7 @@ public class Habit
     public User? User { get; set; }
     public string Name { get; set; } = string.Empty;
     public HabitFrequency Frequency { get; set; }
+    public int SortOrder { get; set; }          // <- nuevo
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public ICollection<HabitLog> Logs { get; set; } = new List<HabitLog>();
 }

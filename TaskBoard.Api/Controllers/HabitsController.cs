@@ -27,6 +27,8 @@ public class HabitsController : ControllerBase
 
         var habits = await _context.Habits
             .Where(h => h.UserId == userId)
+            .OrderBy(h => h.SortOrder)
+            .ThenBy(h => h.Id)
             .ToListAsync();
 
         return Ok(habits.Select(MapToDto));
@@ -63,11 +65,17 @@ public class HabitsController : ControllerBase
     {
         var userId = User.GetUserId();
 
+        var maxOrder = await _context.Habits
+            .Where(h => h.UserId == userId)
+            .Select(h => (int?)h.SortOrder)
+            .MaxAsync() ?? -1;
+
         var habit = new Habit
         {
             UserId = userId,
             Name = dto.Name,
             Frequency = dto.Frequency,
+            SortOrder = maxOrder + 1,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -75,6 +83,37 @@ public class HabitsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetAll), MapToDto(habit));
+    }
+
+    // PUT /api/Habits/reorder
+    // Recibe TODOS los IDs del usuario en el nuevo orden y los renumera en una transacción.
+    [HttpPut("reorder")]
+    public async Task<IActionResult> Reorder(ReorderHabitsDto dto)
+    {
+        var userId = User.GetUserId();
+
+        var habits = await _context.Habits
+            .Where(h => h.UserId == userId)
+            .ToListAsync();
+
+        // Validación: la lista debe contener exactamente los hábitos del usuario, sin repetidos ni ajenos
+        var sameSet = dto.HabitIds.Count == habits.Count
+            && dto.HabitIds.Distinct().Count() == habits.Count
+            && habits.All(h => dto.HabitIds.Contains(h.Id));
+
+        if (!sameSet)
+        {
+            return BadRequest("La lista debe contener exactamente todos tus hábitos, sin repetidos.");
+        }
+
+        for (var i = 0; i < dto.HabitIds.Count; i++)
+        {
+            habits.First(h => h.Id == dto.HabitIds[i]).SortOrder = i;
+        }
+
+        await _context.SaveChangesAsync();
+
+        return NoContent();
     }
 
     [HttpDelete("{id:int}")]
