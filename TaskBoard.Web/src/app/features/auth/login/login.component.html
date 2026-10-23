@@ -41,6 +41,10 @@
         }
       </mat-form-field>
 
+      @if (mode() === 'login') {
+        <a class="forgot-link" routerLink="/forgot-password">¿Has olvidado tu contraseña?</a>
+      }
+
       @if (errorMessage(); as message) {
         <div class="error-banner" role="alert">
           <mat-icon>error_outline</mat-icon>

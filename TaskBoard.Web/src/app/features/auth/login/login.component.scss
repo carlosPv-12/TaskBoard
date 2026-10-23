@@ -72,6 +72,18 @@ mat-form-field mat-icon[matPrefix] {
   font: var(--mat-sys-body-medium);
 }
 
+.forgot-link {
+  align-self: flex-end;
+  margin: -4px 4px 12px 0;
+  color: var(--mat-sys-primary);
+  font: var(--mat-sys-label-large);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .submit {
   height: 48px;
   font-size: 16px;

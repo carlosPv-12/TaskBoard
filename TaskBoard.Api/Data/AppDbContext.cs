@@ -20,9 +20,31 @@ public class AppDbContext : DbContext
     public DbSet<WorkoutSession> WorkoutSessions { get; set; }
     public DbSet<SessionExercise> SessionExercises { get; set; }
     public DbSet<WorkoutSet> WorkoutSets { get; set; }
+    public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
    protected override void OnModelCreating(ModelBuilder modelBuilder)
 {
+    modelBuilder.Entity<RefreshToken>(entity =>
+    {
+        entity.Property(r => r.TokenHash).HasMaxLength(64); // SHA-256 en hexadecimal
+        entity.HasIndex(r => r.TokenHash).IsUnique();       // la búsqueda es siempre por hash
+        entity.HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);              // borrar usuario = borrar sus sesiones
+    });
+
+    modelBuilder.Entity<PasswordResetToken>(entity =>
+    {
+        entity.Property(r => r.TokenHash).HasMaxLength(64);
+        entity.HasIndex(r => r.TokenHash).IsUnique();
+        entity.HasOne(r => r.User)
+            .WithMany()
+            .HasForeignKey(r => r.UserId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
     modelBuilder.Entity<Exercise>()
         .HasOne<User>()
         .WithMany()
