@@ -1,5 +1,6 @@
 # Stack completo de TaskBoard: SQL Server + API (.NET) + web (Angular servido por nginx).
-# En Coolify: recurso Docker Compose; solo "web" lleva dominio (https://taskboard.capeva26.com:8080).
+# En producción Coolify usa tres recursos separados (taskboard-sqlserver, taskboard-api, taskboard-web);
+# este compose replica ese montaje para probar en local con Docker Desktop.
 # Las variables ${...} se rellenan en la pestaña Environment Variables de Coolify (o en un .env local).
 services:
   db:
@@ -47,6 +48,10 @@ services:
         condition: service_healthy
     mem_limit: 512m
     restart: unless-stopped
+    networks:
+      default:
+        aliases:
+          - taskboard-api                  # el mismo alias que tiene el recurso de la API en Coolify
 
   web:
     build:
