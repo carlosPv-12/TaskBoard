@@ -42,6 +42,10 @@ interface HabitRow {
   habit: Habit;
   cells: HabitCell[];
   weekCount: number;
+  /** Objetivo de la semana: 7 días si es diario, 1 vez si es semanal. */
+  weekTarget: number;
+  /** Objetivo de la semana cumplido. */
+  weekMet: boolean;
 }
 
 const logKey = (habitId: number, iso: string) => `${habitId}|${iso}`;
@@ -125,7 +129,10 @@ export class HabitListComponent {
           isToday: day.isToday
         };
       });
-      return { habit, cells, weekCount: cells.filter(c => c.done).length };
+      const weekTarget = habit.frequency === 'Weekly' ? 1 : 7;
+      // En un semanal, marcar más de un día sigue contando como "1/1".
+      const weekCount = Math.min(cells.filter(c => c.done).length, weekTarget);
+      return { habit, cells, weekCount, weekTarget, weekMet: weekCount >= weekTarget };
     });
   });
 

@@ -95,7 +95,12 @@
                 </button>
                 <div class="name-text">
                   <span class="habit-name">{{ row.habit.name }}</span>
-                  <span class="habit-meta">{{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/7</span>
+                  <span class="habit-meta" [class.met]="row.weekMet">
+                    {{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/{{ row.weekTarget }}
+                    @if (row.weekMet) {
+                      <mat-icon class="met-icon" aria-label="Objetivo de la semana cumplido">check_circle</mat-icon>
+                    }
+                  </span>
                 </div>
                 <button
                   mat-icon-button

@@ -120,8 +120,23 @@
 }
 
 .habit-meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font: var(--mat-sys-body-small);
   color: var(--mat-sys-on-surface-variant);
+
+  // Objetivo semanal cumplido: el contador se resalta
+  &.met {
+    color: var(--mat-sys-primary);
+    font-weight: 500;
+  }
+
+  .met-icon {
+    font-size: 14px;
+    width: 14px;
+    height: 14px;
+  }
 }
 
 .row-menu {
