@@ -4,18 +4,18 @@ WORKDIR /src
 
 # Se copia solo el .csproj primero para cachear el restore de paquetes NuGet
 # (igual que cachear dependencias de Maven antes de copiar el código)
-COPY *.csproj ./
+COPY TaskBoard.Api.csproj ./
 RUN dotnet restore
 
 COPY . .
-RUN dotnet publish -c Release -o /app/publish --no-restore
+# UseAppHost=false: no genera el ejecutable nativo; se arranca con "dotnet X.dll"
+RUN dotnet publish -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
 # ---------- Etapa 2: runtime (ligera) ----------
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS runtime
 WORKDIR /app
 
-# Puerto interno; Traefik enrutará hasta aquí (equivale a server.port)
-ENV ASPNETCORE_URLS=http://+:8080
+# La imagen ya escucha en 8080 (ASPNETCORE_HTTP_PORTS=8080), equivale a server.port
 EXPOSE 8080
 
 COPY --from=build /app/publish .

@@ -1,17 +1,19 @@
-using System.Net;
-using System.Text.Json;
-
 namespace TaskBoard.Api.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly IHostEnvironment _environment;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(
+        RequestDelegate next,
+        ILogger<ExceptionHandlingMiddleware> logger,
+        IHostEnvironment environment)
     {
         _next = next;
         _logger = logger;
+        _environment = environment;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -20,20 +22,29 @@ public class ExceptionHandlingMiddleware
         {
             await _next(context);
         }
+        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
+        {
+            // El cliente cerró la conexión: no es un error del servidor
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Excepción no controlada");
+            _logger.LogError(ex, "Excepción no controlada en {Method} {Path} (traceId {TraceId})",
+                context.Request.Method, context.Request.Path, context.TraceIdentifier);
 
-            context.Response.ContentType = "application/json";
-            context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+            // Si ya se enviaron cabeceras no se puede reescribir la respuesta
+            if (context.Response.HasStarted)
+                throw;
 
-            var response = new
+            context.Response.Clear();
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+
+            // El detalle solo en desarrollo; en producción, el traceId para buscarlo en los logs
+            await context.Response.WriteAsJsonAsync(new
             {
                 error = "Ha ocurrido un error inesperado.",
-                detail = ex.Message
-            };
-
-            await context.Response.WriteAsync(JsonSerializer.Serialize(response));
+                traceId = context.TraceIdentifier,
+                detail = _environment.IsDevelopment() ? ex.Message : null
+            });
         }
     }
 }

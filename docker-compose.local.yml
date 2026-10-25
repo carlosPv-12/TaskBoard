@@ -1,0 +1,7 @@
+# Solo para probar en local (Docker Desktop); Coolify no usa este archivo.
+# Uso: docker compose -f docker-compose.yml -f docker-compose.local.yml up --build
+# La app queda en http://localhost:8080 (en producción el acceso lo da Traefik).
+services:
+  web:
+    ports:
+      - "8080:8080"

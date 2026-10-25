@@ -1,0 +1,60 @@
+# Stack completo de TaskBoard: SQL Server + API (.NET) + web (Angular servido por nginx).
+# En Coolify: recurso Docker Compose; solo "web" lleva dominio (https://taskboard.capeva26.com:8080).
+# Las variables ${...} se rellenan en la pestaña Environment Variables de Coolify (o en un .env local).
+services:
+  db:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      ACCEPT_EULA: "Y"
+      MSSQL_PID: "Express"                 # gratuita y con licencia para producción (máx. 10 GB por BD)
+      MSSQL_SA_PASSWORD: ${MSSQL_SA_PASSWORD:?Falta MSSQL_SA_PASSWORD}
+      MSSQL_MEMORY_LIMIT_MB: "1536"
+    volumes:
+      - mssql-data:/var/opt/mssql
+    mem_limit: 2g                          # SQL Server en Linux exige al menos 2000 MB
+    healthcheck:
+      # $$ escapa el $ para que la contraseña la expanda el shell del contenedor
+      # con su propia variable de entorno, sin quedar escrita en este archivo
+      test: ["CMD-SHELL", "/opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P \"$${MSSQL_SA_PASSWORD}\" -C -b -Q \"SELECT 1\" -o /dev/null"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    restart: unless-stopped
+    # Sin "ports": SQL Server solo es accesible desde la red interna del compose
+
+  api:
+    build:
+      context: ./TaskBoard.Api
+    environment:
+      ConnectionStrings__DefaultConnection: "Server=db,1433;Database=TaskBoard;User Id=sa;Password=${MSSQL_SA_PASSWORD};Encrypt=True;TrustServerCertificate=True"
+      Jwt__Key: ${JWT_KEY:?Falta JWT_KEY}
+      Jwt__Issuer: "TaskBoardApi"
+      Jwt__Audience: "TaskBoardClient"
+      Jwt__ExpiresInMinutes: "15"
+      Jwt__RefreshExpiresInDays: "30"
+      Cors__AllowedOrigins__0: ${FRONTEND_URL:?Falta FRONTEND_URL}
+      # App móvil (Capacitor en Android, origen https://localhost): descomentar cuando exista el APK
+      # Cors__AllowedOrigins__1: "https://localhost"
+      App__FrontendUrl: ${FRONTEND_URL:?Falta FRONTEND_URL}
+      # Vacía = no se envían emails (LogEmailSender)
+      Resend__ApiKey: ${RESEND_API_KEY:-}
+      # ":-" aplica el valor por defecto si RESEND_FROM no existe o está vacía
+      # (vacía sustituiría al valor de appsettings.json y Resend rechazaría el envío)
+      Resend__From: "${RESEND_FROM:-TaskBoard <onboarding@resend.dev>}"
+    depends_on:
+      db:
+        condition: service_healthy
+    mem_limit: 512m
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./TaskBoard.Web
+    depends_on:
+      - api
+    mem_limit: 64m
+    restart: unless-stopped
+
+volumes:
+  mssql-data:

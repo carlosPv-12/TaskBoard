@@ -9,6 +9,7 @@ using Microsoft.OpenApi.Models;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.AspNetCore.HttpOverrides;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -137,6 +138,21 @@ builder.Services.AddRateLimiter(o =>
         }));
 });
 
+// Detrás de Traefik + nginx: la IP y el esquema reales vienen en X-Forwarded-For / X-Forwarded-Proto
+// (equivale a server.forward-headers-strategy=native en Spring Boot)
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+
+    // Solo se confía en proxies de redes privadas (la red interna de Docker)
+    options.KnownIPNetworks.Clear();
+    options.KnownProxies.Clear();
+    // System.Net.IPNetwork cualificado: HttpOverrides tiene otro IPNetwork (el antiguo, obsoleto)
+    options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("10.0.0.0/8"));
+    options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("172.16.0.0/12"));
+    options.KnownIPNetworks.Add(System.Net.IPNetwork.Parse("192.168.0.0/16"));
+});
+
 var app = builder.Build();
 
 // Aplica las migraciones pendientes al arrancar (crea las tablas en la BD vacía de producción)
@@ -146,6 +162,9 @@ using (var scope = app.Services.CreateScope())
     db.Database.Migrate();
 }
 
+// Lo primero: el resto (rate limiting, logs) ya ve la IP real del cliente
+app.UseForwardedHeaders();
+
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())
@@ -154,7 +173,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+// Sin UseHttpsRedirection: el TLS lo termina Traefik, que ya redirige HTTP → HTTPS.
+// CORS se mantiene para la futura app móvil (Capacitor, origen https://localhost).
 app.UseCors("Frontend");
 app.UseRateLimiter();
 app.UseAuthentication();
