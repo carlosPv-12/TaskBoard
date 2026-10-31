@@ -10,21 +10,18 @@
   <!-- ── Resumen del mes ── -->
   <div class="summary">
     <div class="stat">
-      <mat-icon>fitness_center</mat-icon>
       <div>
         <span class="value">{{ monthSummary().sessions }}</span>
-        <span class="label">entrenos este mes</span>
+        <span class="label">{{ monthSummary().sessions === 1 ? 'entreno este mes' : 'entrenos este mes' }}</span>
       </div>
     </div>
     <div class="stat">
-      <mat-icon>event_available</mat-icon>
       <div>
         <span class="value">{{ monthSummary().days }}</span>
-        <span class="label">días entrenados</span>
+        <span class="label">{{ monthSummary().days === 1 ? 'día entrenado' : 'días entrenados' }}</span>
       </div>
     </div>
     <div class="stat">
-      <mat-icon>timer</mat-icon>
       <div>
         <span class="value">{{ monthSummary().minutes * 60 | duration: 'short' }}</span>
         <span class="label">tiempo registrado</span>
@@ -112,6 +109,12 @@
 
       <form class="create-form" [formGroup]="createForm" (ngSubmit)="createSession()">
         <h3>Registrar entreno</h3>
+
+        @if (selectedSessions().length > 0) {
+          <p class="hint">
+            ¿Quieres sumar otra rutina a este día? Abre el entreno y pulsa <strong>Añadir rutina</strong>.
+          </p>
+        }
 
                 <mat-form-field appearance="outline" subscriptSizing="dynamic" floatLabel="always">
           <mat-label>Rutina</mat-label>

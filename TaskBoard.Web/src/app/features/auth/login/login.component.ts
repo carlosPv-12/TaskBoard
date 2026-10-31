@@ -3,6 +3,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { HttpErrorResponse } from '@angular/common/http';
 import { MatCardModule } from '@angular/material/card';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
@@ -18,6 +19,7 @@ type AuthMode = 'login' | 'register';
     ReactiveFormsModule,
     RouterLink,
     MatCardModule,
+    MatCheckboxModule,
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
@@ -40,7 +42,8 @@ export class LoginComponent {
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
-    password: ['', [Validators.required]]
+    password: ['', [Validators.required]],
+    remember: [true]
   });
 
   toggleMode(): void {
@@ -57,10 +60,10 @@ export class LoginComponent {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    const request = this.form.getRawValue();
+    const { email, password, remember } = this.form.getRawValue();
     const action$ = this.mode() === 'login'
-      ? this.auth.login(request)
-      : this.auth.register(request);
+      ? this.auth.login({ email, password }, remember)
+      : this.auth.register({ email, password });
 
      action$.subscribe({
       next: () => {

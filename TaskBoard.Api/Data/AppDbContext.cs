@@ -20,6 +20,7 @@ public class AppDbContext : DbContext
     public DbSet<WorkoutSession> WorkoutSessions { get; set; }
     public DbSet<SessionExercise> SessionExercises { get; set; }
     public DbSet<WorkoutSet> WorkoutSets { get; set; }
+    public DbSet<WorkoutSessionRoutine> WorkoutSessionRoutines { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
     public DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
 
@@ -55,6 +56,27 @@ public class AppDbContext : DbContext
     modelBuilder.Entity<WorkoutSet>()
         .Property(s => s.Weight)
         .HasPrecision(8, 2);
+
+    // Distancia en km con 2 decimales: hasta 99.999,99 km
+    modelBuilder.Entity<WorkoutSet>()
+        .Property(s => s.DistanceKm)
+        .HasPrecision(7, 2);
+
+    modelBuilder.Entity<WorkoutSessionRoutine>(entity =>
+    {
+        // Clave compuesta: una rutina no puede estar dos veces en el mismo entreno
+        entity.HasKey(sr => new { sr.WorkoutSessionId, sr.RoutineId });
+
+        entity.HasOne(sr => sr.WorkoutSession)
+            .WithMany(s => s.SessionRoutines)
+            .HasForeignKey(sr => sr.WorkoutSessionId)
+            .OnDelete(DeleteBehavior.Cascade);   // borrar el entreno borra sus vínculos
+
+        entity.HasOne(sr => sr.Routine)
+            .WithMany()
+            .HasForeignKey(sr => sr.RoutineId)
+            .OnDelete(DeleteBehavior.Restrict);  // una rutina usada en entrenos no se puede borrar
+    });
 }
         protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
         {

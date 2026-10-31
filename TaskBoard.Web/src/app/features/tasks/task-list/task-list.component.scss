@@ -5,25 +5,21 @@
 .page {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 16px;
 }
 
 .page-header {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
-
-  h1 {
-    margin: 0;
-    font: var(--mat-sys-headline-medium);
-  }
+  margin-top: -12px; // pegado al título grande de la sección
 
   .subtitle {
-    margin: 4px 0 0;
-    font: var(--mat-sys-body-medium);
-    color: var(--mat-sys-on-surface-variant);
+    margin: 0;
+    font: 400 15px / 1.4 var(--tb-font);
+    color: var(--tb-ink-2);
   }
 }
 
@@ -31,11 +27,11 @@
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 14px;
+  padding: 6px 12px;
   border-radius: 999px;
   background: var(--mat-sys-error-container);
   color: var(--mat-sys-on-error-container);
-  font: var(--mat-sys-label-large);
+  font: 600 13px / 1 var(--tb-font);
 }
 
 .live-dot {
@@ -47,8 +43,13 @@
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.3; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
 }
 
 .create-form {
@@ -62,23 +63,34 @@
 
   mat-icon[matPrefix] {
     margin: 0 8px 0 12px;
-    color: var(--mat-sys-on-surface-variant);
+    color: var(--tb-ink-2);
   }
 }
 
 .create-btn {
-  height: 56px;
-  padding: 0 24px;
+  height: 48px;
 }
 
 .filters {
   align-self: flex-start;
 }
 
+// Número de cada filtro, en gris y con cifras alineadas
+.count {
+  margin-left: 4px;
+  color: var(--tb-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+// Una sola lista agrupada (como Recordatorios), no una tarjeta por tarea
 .task-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+  border-radius: 14px;
+  background: var(--tb-panel);
+  overflow: hidden;
+
+  &:has(.state) {
+    background: none;
+  }
 }
 
 .state {
@@ -87,9 +99,9 @@
   align-items: center;
   gap: 8px;
   padding: 48px 16px;
-  border-radius: 16px;
-  border: 1px dashed var(--mat-sys-outline-variant);
-  color: var(--mat-sys-on-surface-variant);
+  border-radius: 14px;
+  border: 1px dashed var(--tb-separator);
+  color: var(--tb-ink-2);
   text-align: center;
 
   mat-icon {
@@ -100,7 +112,7 @@
 
   p {
     margin: 0;
-    font: var(--mat-sys-body-large);
+    font: 400 16px / 1.4 var(--tb-font);
   }
 }
 
@@ -113,5 +125,9 @@
   .filters {
     align-self: stretch;
     overflow-x: auto;
+
+    mat-button-toggle {
+      flex: 1;
+    }
   }
 }

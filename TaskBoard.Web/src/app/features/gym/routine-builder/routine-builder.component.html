@@ -1,8 +1,11 @@
 <form class="builder" [formGroup]="form" (ngSubmit)="submit()">
   <h3 class="builder-title">
-    <mat-icon>add_circle</mat-icon>
-    Nueva rutina
+    <mat-icon>{{ editing() ? 'edit' : 'add_circle' }}</mat-icon>
+    {{ editing() ? 'Editar rutina' : 'Nueva rutina' }}
   </h3>
+  @if (editing()) {
+    <p class="edit-note">Los cambios solo afectan a los próximos entrenos; los ya registrados no cambian.</p>
+  }
 
   <mat-form-field appearance="outline" subscriptSizing="dynamic">
     <mat-label>Nombre de la rutina</mat-label>
@@ -29,7 +32,12 @@
       (optionSelected)="add($event, exerciseInput)">
       @for (exercise of available(); track exercise.id) {
         <mat-option [value]="exercise">
-          <span class="option-name">{{ exercise.name }}</span>
+          <span class="option-name">
+            {{ exercise.name }}
+            @if (exercise.type === 'Time') {
+              <mat-icon class="type-icon" aria-label="Ejercicio de tiempo">timer</mat-icon>
+            }
+          </span>
           <span class="option-group">{{ exercise.muscleGroup }}</span>
         </mat-option>
       } @empty {
@@ -46,7 +54,12 @@
         <li class="selected-item" cdkDrag cdkDragLockAxis="y">
           <mat-icon class="handle" cdkDragHandle aria-hidden="true">drag_indicator</mat-icon>
           <span class="position">{{ i + 1 }}</span>
-          <span class="name">{{ exercise.name }}</span>
+          <span class="name">
+            {{ exercise.name }}
+            @if (exercise.type === 'Time') {
+              <mat-icon class="type-icon" aria-label="Ejercicio de tiempo">timer</mat-icon>
+            }
+          </span>
           <span class="group">{{ exercise.muscleGroup }}</span>
           <button mat-icon-button type="button" (click)="removeAt(i)" [attr.aria-label]="'Quitar ' + exercise.name">
             <mat-icon>close</mat-icon>
@@ -61,11 +74,13 @@
   }
 
   <div class="builder-actions">
-    @if (selected().length > 0) {
+    @if (editing()) {
+      <button mat-button type="button" (click)="cancelEdit.emit()">Cancelar</button>
+    } @else if (selected().length > 0) {
       <button mat-button type="button" (click)="reset()">Descartar</button>
     }
     <button mat-flat-button type="submit" [disabled]="saving()">
-      <mat-icon>save</mat-icon> Guardar rutina
+      <mat-icon>save</mat-icon> {{ editing() ? 'Guardar cambios' : 'Guardar rutina' }}
     </button>
   </div>
 </form>

@@ -8,6 +8,7 @@ import { AuthRequest, AuthResponse } from './auth.models';
 const TOKEN_KEY = 'taskboard_token';
 const REFRESH_KEY = 'taskboard_refresh_token';
 const EMAIL_KEY = 'taskboard_email';
+const SESSION_KEYS = [TOKEN_KEY, REFRESH_KEY, EMAIL_KEY];
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -15,10 +16,18 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly baseUrl = `${environment.apiUrl}/Auth`;
 
+  /**
+   * Dónde vive la sesión:
+   *  - localStorage: "Mantener la sesión iniciada" (sobrevive a cerrar el navegador; el refresh token dura 30 días).
+   *  - sessionStorage: se borra al cerrar el navegador (útil en un ordenador que no es tuyo).
+   * Al arrancar se detecta cuál tiene la sesión; si ninguna, se usa localStorage.
+   */
+  private storage: Storage = sessionStorage.getItem(REFRESH_KEY) ? sessionStorage : localStorage;
+
   // Estado interno (escribible solo desde aquí)
-  private readonly _token = signal<string | null>(localStorage.getItem(TOKEN_KEY));
-  private readonly _refreshToken = signal<string | null>(localStorage.getItem(REFRESH_KEY));
-  private readonly _email = signal<string | null>(localStorage.getItem(EMAIL_KEY));
+  private readonly _token = signal<string | null>(this.storage.getItem(TOKEN_KEY));
+  private readonly _refreshToken = signal<string | null>(this.storage.getItem(REFRESH_KEY));
+  private readonly _email = signal<string | null>(this.storage.getItem(EMAIL_KEY));
 
   /** Refresh en curso: si varias peticiones fallan a la vez con 401, todas esperan a ESTE mismo. */
   private refreshInFlight$: Observable<string> | null = null;
@@ -33,16 +42,17 @@ export class AuthService {
    */
   readonly isAuthenticated = computed(() => this._refreshToken() !== null);
 
-  login(request: AuthRequest): Observable<AuthResponse> {
+  /** remember = false → la sesión termina al cerrar el navegador. */
+  login(request: AuthRequest, remember = true): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/login`, request)
-      .pipe(tap(response => this.saveSession(response)));
+      .pipe(tap(response => this.saveSession(response, remember)));
   }
 
   register(request: AuthRequest): Observable<AuthResponse> {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}/register`, request)
-      .pipe(tap(response => this.saveSession(response)));
+      .pipe(tap(response => this.saveSession(response, true)));
   }
 
   /** Pide el email de recuperación. El servidor responde igual exista o no la cuenta. */
@@ -70,15 +80,16 @@ export class AuthService {
     }
 
     this.refreshInFlight$ = this.http.post<AuthResponse>(`${this.baseUrl}/refresh`, { refreshToken: sent }).pipe(
+      // Sin "remember": se guarda donde ya estaba la sesión
       tap(response => this.saveSession(response)),
       map(response => response.token),
       catchError((error: unknown) => {
         // Otra pestaña pudo rotar el token un instante antes: el nuestro ya está gastado,
-        // pero en localStorage hay uno nuevo y válido. Lo adoptamos en vez de cerrar la sesión.
-        const stored = localStorage.getItem(REFRESH_KEY);
+        // pero en el almacenamiento hay uno nuevo y válido. Lo adoptamos en vez de cerrar la sesión.
+        const stored = this.storage.getItem(REFRESH_KEY);
         if (error instanceof HttpErrorResponse && error.status === 401 && stored && stored !== sent) {
           this.loadFromStorage();
-          return of(localStorage.getItem(TOKEN_KEY) ?? '');
+          return of(this.storage.getItem(TOKEN_KEY) ?? '');
         }
         return throwError(() => error);
       }),
@@ -100,27 +111,40 @@ export class AuthService {
       this.http.post(`${this.baseUrl}/logout`, { refreshToken }).subscribe({ error: () => undefined });
     }
 
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(REFRESH_KEY);
-    localStorage.removeItem(EMAIL_KEY);
+    this.clear(localStorage);
+    this.clear(sessionStorage);
+    this.storage = localStorage;
     this._token.set(null);
     this._refreshToken.set(null);
     this._email.set(null);
     this.router.navigate(['/login']);
   }
 
-  private saveSession(response: AuthResponse): void {
-    localStorage.setItem(TOKEN_KEY, response.token);
-    localStorage.setItem(REFRESH_KEY, response.refreshToken);
-    localStorage.setItem(EMAIL_KEY, response.email);
+  /** remember definido = login (elige dónde guardar); undefined = renovación (sigue en el mismo sitio). */
+  private saveSession(response: AuthResponse, remember?: boolean): void {
+    if (remember !== undefined) {
+      const target = remember ? localStorage : sessionStorage;
+      if (target !== this.storage) {
+        this.clear(this.storage); // que no quede una sesión vieja en el otro almacenamiento
+        this.storage = target;
+      }
+    }
+
+    this.storage.setItem(TOKEN_KEY, response.token);
+    this.storage.setItem(REFRESH_KEY, response.refreshToken);
+    this.storage.setItem(EMAIL_KEY, response.email);
     this._token.set(response.token);
     this._refreshToken.set(response.refreshToken);
     this._email.set(response.email);
   }
 
   private loadFromStorage(): void {
-    this._token.set(localStorage.getItem(TOKEN_KEY));
-    this._refreshToken.set(localStorage.getItem(REFRESH_KEY));
-    this._email.set(localStorage.getItem(EMAIL_KEY));
+    this._token.set(this.storage.getItem(TOKEN_KEY));
+    this._refreshToken.set(this.storage.getItem(REFRESH_KEY));
+    this._email.set(this.storage.getItem(EMAIL_KEY));
+  }
+
+  private clear(storage: Storage): void {
+    SESSION_KEYS.forEach(key => storage.removeItem(key));
   }
 }

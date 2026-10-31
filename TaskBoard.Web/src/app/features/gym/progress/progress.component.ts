@@ -22,12 +22,20 @@ import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { parseIsoDate } from '../../../shared/utils/local-date';
+import { DurationPipe } from '../../../shared/pipes/duration.pipe';
 import { ExerciseService } from '../services/exercise.service';
 import { WorkoutSessionService } from '../services/workout-session.service';
 import { Exercise } from '../models/exercise.models';
 import { ExerciseProgressPoint } from '../models/progress.models';
 
-type Metric = 'weight' | 'volume';
+type Metric = 'weight' | 'volume' | 'maxDuration' | 'totalDuration' | 'distance';
+
+interface MetricOption {
+  value: Metric;
+  label: string;
+  /** Subtítulo de la gráfica. */
+  description: string;
+}
 
 interface ChartPalette {
   line: string;
@@ -61,6 +69,7 @@ export class ProgressComponent {
   private readonly snackBar = inject(MatSnackBar);
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly locale = inject(LOCALE_ID);
+  private readonly durationPipe = new DurationPipe();
 
   /** Query param ?exercise=3 → input (withComponentInputBinding también enlaza query params). */
   readonly exercise = input<string>();
@@ -88,6 +97,35 @@ export class ProgressComponent {
     () => this.catalog().find(e => e.id === this.selectedExerciseId()) ?? null
   );
 
+  /** Ejercicio de tiempo (plancha, cinta...) en lugar de peso × repeticiones. */
+  readonly isTime = computed(() => this.selectedExercise()?.type === 'Time');
+
+  readonly hasDistance = computed(() => this.progress().some(p => (p.totalDistanceKm ?? 0) > 0));
+
+  /** Las métricas disponibles dependen del tipo de ejercicio. */
+  readonly metricOptions = computed<MetricOption[]>(() =>
+    this.isTime()
+      ? [
+          { value: 'maxDuration', label: 'Mejor tiempo', description: 'Serie más larga de cada día' },
+          { value: 'totalDuration', label: 'Tiempo total', description: 'Tiempo acumulado por día' },
+          ...(this.hasDistance()
+            ? [{ value: 'distance' as Metric, label: 'Distancia', description: 'Distancia total por día' }]
+            : [])
+        ]
+      : [
+          { value: 'weight', label: 'Peso máximo', description: 'Peso máximo por día' },
+          { value: 'volume', label: 'Volumen', description: 'Volumen total por día (peso × reps)' }
+        ]
+  );
+
+  /** Si al cambiar de ejercicio la métrica elegida ya no existe, se usa la primera disponible. */
+  readonly activeMetric = computed<MetricOption>(
+    () => this.metricOptions().find(o => o.value === this.metric()) ?? this.metricOptions()[0]
+  );
+
+  /** Métrica de las tarjetas de resumen: la "principal" de cada tipo. */
+  readonly primaryMetric = computed<Metric>(() => (this.isTime() ? 'maxDuration' : 'weight'));
+
   readonly groups = computed(() => {
     const map = new Map<string, Exercise[]>();
     for (const e of [...this.catalog()].sort((a, b) => a.name.localeCompare(b.name, 'es'))) {
@@ -102,16 +140,19 @@ export class ProgressComponent {
     const points = this.progress();
     if (points.length === 0) return null;
 
+    const metric = this.primaryMetric();
     const first = points[0];
     const last = points[points.length - 1];
-    const record = points.reduce((best, p) => (p.maxWeight > best.maxWeight ? p : best));
-    const change = last.maxWeight - first.maxWeight;
+    const record = points.reduce((best, p) => (this.valueOf(p, metric) > this.valueOf(best, metric) ? p : best));
+    const firstValue = this.valueOf(first, metric);
+    const change = this.valueOf(last, metric) - firstValue;
 
     return {
+      metric,
       record,
       last,
       change,
-      changePct: first.maxWeight > 0 ? (change / first.maxWeight) * 100 : null,
+      changePct: firstValue > 0 ? (change / firstValue) * 100 : null,
       sessions: points.length
     };
   });
@@ -120,15 +161,15 @@ export class ProgressComponent {
 
   readonly chartData = computed<ChartData<'line'>>(() => {
     const points = this.progress();
-    const isWeight = this.metric() === 'weight';
+    const metric = this.activeMetric();
     const colors = this.palette();
 
     return {
       labels: points.map(p => formatDate(parseIsoDate(p.date), 'd MMM', this.locale)),
       datasets: [
         {
-          label: isWeight ? 'Peso máximo' : 'Volumen',
-          data: points.map(p => (isWeight ? p.maxWeight : p.totalVolume)),
+          label: metric.label,
+          data: points.map(p => this.valueOf(p, metric.value)),
           borderColor: colors.line,
           backgroundColor: colors.fill,
           pointBackgroundColor: colors.line,
@@ -144,8 +185,8 @@ export class ProgressComponent {
 
   readonly chartOptions = computed<ChartConfiguration<'line'>['options']>(() => {
     const colors = this.palette();
-    const isWeight = this.metric() === 'weight';
-    const format = (value: number) => `${formatNumber(value, this.locale, '1.0-1')} kg`;
+    const metric = this.activeMetric();
+    const format = (value: number) => this.format(value, metric.value);
 
     return {
       responsive: true,
@@ -157,7 +198,7 @@ export class ProgressComponent {
           padding: 12,
           displayColors: false,
           callbacks: {
-            label: ctx => `${isWeight ? 'Peso máximo' : 'Volumen'}: ${format(ctx.parsed.y ?? 0)}`
+            label: ctx => `${metric.label}: ${format(ctx.parsed.y ?? 0)}`
           }
         }
       },
@@ -167,7 +208,8 @@ export class ProgressComponent {
           ticks: { color: colors.text }
         },
         y: {
-          beginAtZero: !isWeight, // el volumen desde 0; el peso, ajustado para ver la evolución
+          // Totales desde 0; los máximos (peso, mejor tiempo), ajustados para que se vea la evolución
+          beginAtZero: metric.value !== 'weight' && metric.value !== 'maxDuration',
           grid: { color: colors.grid },
           border: { display: false },
           ticks: { color: colors.text, callback: value => format(Number(value)) }
@@ -223,6 +265,48 @@ export class ProgressComponent {
   selectExercise(id: number): void {
     // La URL es la fuente de verdad: se cambia el query param y el input() hace el resto
     this.router.navigate([], { relativeTo: this.route, queryParams: { exercise: id } });
+  }
+
+  /** Valor numérico de un punto para una métrica (segundos, km o kg). */
+  valueOf(point: ExerciseProgressPoint, metric: Metric): number {
+    switch (metric) {
+      case 'weight':
+        return point.maxWeight;
+      case 'volume':
+        return point.totalVolume;
+      case 'maxDuration':
+        return point.maxDurationSeconds ?? 0;
+      case 'totalDuration':
+        return point.totalDurationSeconds ?? 0;
+      case 'distance':
+        return point.totalDistanceKm ?? 0;
+    }
+  }
+
+  /** Texto con unidad: "82,5 kg", "1m 30s", "5,2 km". */
+  format(value: number, metric: Metric): string {
+    switch (metric) {
+      case 'weight':
+        return `${formatNumber(value, this.locale, '1.0-2')} kg`;
+      case 'volume':
+        return `${formatNumber(value, this.locale, '1.0-0')} kg`;
+      case 'maxDuration':
+      case 'totalDuration':
+        return this.durationPipe.transform(value, 'short');
+      case 'distance':
+        return `${formatNumber(value, this.locale, '1.0-2')} km`;
+    }
+  }
+
+  /** Atajo para la plantilla: valor de un punto ya formateado. */
+  display(point: ExerciseProgressPoint, metric: Metric): string {
+    return this.format(this.valueOf(point, metric), metric);
+  }
+
+  /** Diferencia con signo: "+2,5 kg", "−15s". */
+  formatChange(change: number, metric: Metric): string {
+    const sign = change > 0 ? '+' : change < 0 ? '−' : '';
+    return `${sign}${this.format(Math.abs(change), metric)}`;
   }
 
   /** Resuelve una variable CSS a "rgb(...)" usando un elemento de prueba. */

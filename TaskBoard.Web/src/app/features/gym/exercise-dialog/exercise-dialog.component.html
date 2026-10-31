@@ -22,6 +22,15 @@
         }
       </mat-select>
     </mat-form-field>
+
+    <div class="type-field">
+      <span class="type-label">Cómo se registra</span>
+      <mat-button-toggle-group formControlName="type" hideSingleSelectionIndicator aria-label="Tipo de ejercicio">
+        <mat-button-toggle value="Strength">Peso y repeticiones</mat-button-toggle>
+        <mat-button-toggle value="Time">Tiempo</mat-button-toggle>
+      </mat-button-toggle-group>
+      <span class="type-hint">Solo se puede cambiar si el ejercicio aún no tiene series registradas.</span>
+    </div>
   </mat-dialog-content>
 
   <mat-dialog-actions align="end">

@@ -17,10 +17,28 @@
       <span class="eyebrow">{{ dateObj() | date: "EEEE, d 'de' MMMM y" }}</span>
       <h2>{{ s.routineName ?? 'Entreno libre' }}</h2>
     </div>
-    <button mat-stroked-button class="delete-btn" (click)="deleteSession()" [disabled]="deleting()">
-      <mat-icon>delete</mat-icon>
-      Eliminar entreno
-    </button>
+    <div class="hero-actions">
+      <button
+        mat-flat-button
+        [matMenuTriggerFor]="routineMenu"
+        [disabled]="addingRoutine() || availableRoutines().length === 0"
+        [title]="availableRoutines().length === 0 ? 'No quedan rutinas por añadir' : ''">
+        <mat-icon>playlist_add</mat-icon>
+        Añadir rutina
+      </button>
+      <mat-menu #routineMenu="matMenu" xPosition="before">
+        @for (routine of availableRoutines(); track routine.id) {
+          <button mat-menu-item (click)="addRoutine(routine)">
+            <mat-icon>fitness_center</mat-icon>
+            <span>{{ routine.name }} · {{ routine.exercises.length }} ejercicios</span>
+          </button>
+        }
+      </mat-menu>
+      <button mat-stroked-button class="delete-btn" (click)="deleteSession()" [disabled]="deleting()">
+        <mat-icon>delete</mat-icon>
+        Eliminar entreno
+      </button>
+    </div>
   </header>
 
   <!-- ── Resumen ── -->
@@ -33,10 +51,18 @@
       <span class="value">{{ summary().sets }}</span>
       <span class="label">series</span>
     </div>
-    <div class="stat">
-      <span class="value">{{ summary().volume | number: '1.0-0' }}<small> kg</small></span>
-      <span class="label">volumen total</span>
-    </div>
+    @if (summary().volume > 0 || summary().seconds === 0) {
+      <div class="stat">
+        <span class="value">{{ summary().volume | number: '1.0-0' }}<small> kg</small></span>
+        <span class="label">volumen total</span>
+      </div>
+    }
+    @if (summary().seconds > 0) {
+      <div class="stat">
+        <span class="value">{{ summary().seconds | duration: 'short' }}</span>
+        <span class="label">tiempo en ejercicios</span>
+      </div>
+    }
 
     <form class="stat duration" [formGroup]="durationForm" (ngSubmit)="saveDuration()">
       <mat-form-field appearance="outline" subscriptSizing="dynamic">

@@ -17,12 +17,13 @@
   </mat-form-field>
 
   <mat-button-toggle-group
-    [value]="metric()"
+    [value]="activeMetric().value"
     (change)="metric.set($event.value)"
     hideSingleSelectionIndicator
     aria-label="Métrica de la gráfica">
-    <mat-button-toggle value="weight">Peso máximo</mat-button-toggle>
-    <mat-button-toggle value="volume">Volumen</mat-button-toggle>
+    @for (option of metricOptions(); track option.value) {
+      <mat-button-toggle [value]="option.value">{{ option.label }}</mat-button-toggle>
+    }
   </mat-button-toggle-group>
 </div>
 
@@ -46,21 +47,19 @@
   <!-- ── Tarjetas ── -->
   <div class="stats">
     <div class="stat highlight">
-      <span class="label"><mat-icon>emoji_events</mat-icon> Récord</span>
-      <span class="value">{{ s.record.maxWeight | number: '1.0-2' }}<small> kg</small></span>
+      <span class="label"><mat-icon>emoji_events</mat-icon> {{ isTime() ? 'Mejor tiempo' : 'Récord' }}</span>
+      <span class="value">{{ display(s.record, s.metric) }}</span>
       <span class="sub">{{ s.record.date | date: 'd MMM y' }}</span>
     </div>
     <div class="stat">
       <span class="label"><mat-icon>history</mat-icon> Último entreno</span>
-      <span class="value">{{ s.last.maxWeight | number: '1.0-2' }}<small> kg</small></span>
+      <span class="value">{{ display(s.last, s.metric) }}</span>
       <span class="sub">{{ s.last.date | date: 'd MMM y' }}</span>
     </div>
     <div class="stat" [class.up]="s.sessions > 1 && s.change > 0" [class.down]="s.sessions > 1 && s.change < 0">
       <span class="label"><mat-icon>trending_up</mat-icon> Evolución</span>
       @if (s.sessions > 1) {
-        <span class="value">
-          {{ s.change > 0 ? '+' : '' }}{{ s.change | number: '1.0-2' }}<small> kg</small>
-        </span>
+        <span class="value">{{ formatChange(s.change, s.metric) }}</span>
         <span class="sub">
           @if (s.changePct !== null) {
             {{ s.change > 0 ? '+' : '' }}{{ s.changePct | number: '1.0-1' }} % desde el primer entreno
@@ -84,7 +83,7 @@
   <section class="chart-card">
     <header>
       <h2>{{ selectedExercise()?.name }}</h2>
-      <span>{{ metric() === 'weight' ? 'Peso máximo por día' : 'Volumen total por día (peso × reps)' }}</span>
+      <span>{{ activeMetric().description }}</span>
     </header>
     @if (progress().length < 2) {
       <p class="note">Con un solo día entrenado solo hay un punto. Entrena este ejercicio otro día para ver la tendencia.</p>
@@ -101,8 +100,16 @@
       <thead>
         <tr>
           <th>Fecha</th>
-          <th>Peso máximo</th>
-          <th>Volumen</th>
+          @if (isTime()) {
+            <th>Mejor tiempo</th>
+            <th>Tiempo total</th>
+            @if (hasDistance()) {
+              <th>Distancia</th>
+            }
+          } @else {
+            <th>Peso máximo</th>
+            <th>Volumen</th>
+          }
         </tr>
       </thead>
       <tbody>
@@ -110,12 +117,19 @@
           <tr [class.record]="point.date === s.record.date">
             <td>{{ point.date | date: "EEE d 'de' MMM y" }}</td>
             <td>
-              {{ point.maxWeight | number: '1.0-2' }} kg
+              {{ display(point, s.metric) }}
               @if (point.date === s.record.date) {
                 <mat-icon class="record-icon">emoji_events</mat-icon>
               }
             </td>
-            <td>{{ point.totalVolume | number: '1.0-0' }} kg</td>
+            @if (isTime()) {
+              <td>{{ display(point, 'totalDuration') }}</td>
+              @if (hasDistance()) {
+                <td>{{ display(point, 'distance') }}</td>
+              }
+            } @else {
+              <td>{{ display(point, 'volume') }}</td>
+            }
           </tr>
         }
       </tbody>

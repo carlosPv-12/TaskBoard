@@ -2,8 +2,9 @@ import { Component, WritableSignal, computed, inject, signal, viewChild } from '
 import { DatePipe } from '@angular/common';
 import { HttpErrorResponse } from '@angular/common/http';
 import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
-import { filter, finalize, forkJoin, map, switchMap, tap } from 'rxjs';
+import { Observable, filter, finalize, forkJoin, map, switchMap, tap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
@@ -12,6 +13,7 @@ import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSelectModule } from '@angular/material/select';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatTooltipModule } from '@angular/material/tooltip';
 import {
   ConfirmDialogComponent,
   ConfirmDialogData
@@ -21,7 +23,7 @@ import { ExerciseDialogComponent, ExerciseDialogData } from '../exercise-dialog/
 import { RoutineBuilderComponent } from '../routine-builder/routine-builder.component';
 import { ExerciseService } from '../services/exercise.service';
 import { RoutineService } from '../services/routine.service';
-import { Exercise, MUSCLE_GROUPS, UpdateExerciseRequest } from '../models/exercise.models';
+import { Exercise, ExerciseType, MUSCLE_GROUPS, UpdateExerciseRequest } from '../models/exercise.models';
 import { CreateRoutineRequest, Routine } from '../models/routine.models';
 
 interface ExerciseGroup {
@@ -35,12 +37,14 @@ interface ExerciseGroup {
     ReactiveFormsModule,
     DatePipe,
     MatButtonModule,
+    MatButtonToggleModule,
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
     MatMenuModule,
     MatProgressBarModule,
     MatSelectModule,
+    MatTooltipModule,
     RoutineBuilderComponent
   ],
   templateUrl: './routines.component.html',
@@ -69,10 +73,13 @@ export class RoutinesComponent {
   readonly busyExerciseIds = signal<ReadonlySet<number>>(new Set());
   readonly deletingRoutineIds = signal<ReadonlySet<number>>(new Set());
   readonly search = signal('');
+  /** Rutina abierta en el constructor para editarla (null = creando una nueva). */
+  readonly editingRoutine = signal<Routine | null>(null);
 
   readonly exerciseForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(2)]],
-    muscleGroup: ['', Validators.required]
+    muscleGroup: ['', Validators.required],
+    type: ['Strength' as ExerciseType]
   });
 
   // ── Estado derivado ────────────────────────────────────
@@ -128,7 +135,7 @@ export class RoutinesComponent {
 
   // ── Ejercicios ──────────────────────────────────────────
   createExercise(): void {
-    const { name, muscleGroup } = this.exerciseForm.getRawValue();
+    const { name, muscleGroup, type } = this.exerciseForm.getRawValue();
     const trimmed = name.trim();
 
     if (this.exerciseForm.invalid || trimmed.length < 2) {
@@ -145,13 +152,13 @@ export class RoutinesComponent {
 
     this.creatingExercise.set(true);
     this.exerciseService
-      .create({ name: trimmed, muscleGroup })
+      .create({ name: trimmed, muscleGroup, type })
       .pipe(finalize(() => this.creatingExercise.set(false)))
       .subscribe({
         next: exercise => {
           this.exercises.update(list => [...list, exercise]);
-          // Se mantiene el grupo: lo normal es dar de alta varios del mismo músculo seguidos
-          this.exerciseFormDir().resetForm({ name: '', muscleGroup });
+          // Se mantienen grupo y tipo: lo normal es dar de alta varios parecidos seguidos
+          this.exerciseFormDir().resetForm({ name: '', muscleGroup, type });
         },
         error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo crear el ejercicio.'))
       });
@@ -172,7 +179,12 @@ export class RoutinesComponent {
         // undefined = el usuario canceló
         filter((request): request is UpdateExerciseRequest => request !== undefined),
         // Si no cambió nada, no se llama al backend
-        filter(request => request.name !== exercise.name || request.muscleGroup !== exercise.muscleGroup),
+        filter(
+          request =>
+            request.name !== exercise.name ||
+            request.muscleGroup !== exercise.muscleGroup ||
+            request.type !== exercise.type
+        ),
         tap(() => this.setIn(this.busyExerciseIds, exercise.id, true)),
         switchMap(request => this.exerciseService.update(exercise.id, request).pipe(map(() => request))),
         finalize(() => this.setIn(this.busyExerciseIds, exercise.id, false))
@@ -183,19 +195,22 @@ export class RoutinesComponent {
           this.exercises.update(list => list.map(e => (e.id === exercise.id ? updated : e)));
 
           // Las rutinas guardan el nombre del ejercicio: se actualiza también ahí
-          if (request.name !== exercise.name) {
+          if (request.name !== exercise.name || request.type !== exercise.type) {
             this.routines.update(list =>
               list.map(routine => ({
                 ...routine,
                 exercises: routine.exercises.map(item =>
-                  item.exerciseId === exercise.id ? { ...item, exerciseName: request.name } : item
+                  item.exerciseId === exercise.id
+                    ? { ...item, exerciseName: request.name, exerciseType: request.type }
+                    : item
                 )
               }))
             );
           }
           this.notify('Ejercicio actualizado');
         },
-        error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo actualizar el ejercicio.'))
+        error: (error: HttpErrorResponse) =>
+          this.notify(this.apiError(error, 'No se pudo actualizar el ejercicio.'), error.status === 409 ? 6000 : 4000)
       });
   }
 
@@ -233,20 +248,40 @@ export class RoutinesComponent {
   }
 
   // ── Rutinas ─────────────────────────────────────────────
+  /** Crea una rutina nueva o guarda los cambios de la que se está editando. */
   saveRoutine(request: CreateRoutineRequest): void {
-    this.savingRoutine.set(true);
+    const editing = this.editingRoutine();
+    const request$: Observable<Routine> = editing
+      ? this.routineService.update(editing.id, request)
+      : this.routineService.create(request);
 
-    this.routineService
-      .create(request)
-      .pipe(finalize(() => this.savingRoutine.set(false)))
-      .subscribe({
-        next: routine => {
+    this.savingRoutine.set(true);
+    request$.pipe(finalize(() => this.savingRoutine.set(false))).subscribe({
+      next: routine => {
+        if (editing) {
+          this.routines.update(list => list.map(r => (r.id === routine.id ? routine : r)));
+          this.notify(`Rutina "${routine.name}" actualizada`);
+        } else {
           this.routines.update(list => [routine, ...list]);
-          this.builder().reset(); // solo se limpia si el backend confirmó
           this.notify(`Rutina "${routine.name}" creada`);
-        },
-        error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo crear la rutina.'))
-      });
+        }
+        this.editingRoutine.set(null);
+        this.builder().reset(); // solo se limpia si el backend confirmó
+      },
+      error: (error: HttpErrorResponse) =>
+        this.notify(this.apiError(error, editing ? 'No se pudo guardar la rutina.' : 'No se pudo crear la rutina.'))
+    });
+  }
+
+  editRoutine(routine: Routine): void {
+    this.editingRoutine.set(routine);
+    // El constructor está encima de la lista: se lleva la vista hasta él
+    document.querySelector('app-routine-builder')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  cancelEditRoutine(): void {
+    this.editingRoutine.set(null);
+    this.builder().reset();
   }
 
   deleteRoutine(routine: Routine): void {

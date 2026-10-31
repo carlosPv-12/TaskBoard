@@ -1,70 +1,260 @@
-.brand {
-  margin-left: 8px;
-  font-weight: 500;
-}
+// Tres disposiciones con el mismo HTML:
+//   ≥ 1100 px   barra lateral a la izquierda (como Recordatorios o Notas en el Mac)
+//   701–1099    barra superior
+//   ≤ 700       barra inferior de pestañas (iOS)
+$sidebar-width: 248px;
 
-.spacer {
-  flex: 1 1 auto;
-}
-
-.content {
-  box-sizing: border-box;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 24px 64px;
-}
-
+// ── Barra superior (tablet) ─────────────────────────────
+// Transparente sobre el fondo; al hacer scroll se vuelve cristal esmerilado con una línea fina.
 .topbar {
-  gap: 4px;
-  border-bottom: 1px solid var(--mat-sys-outline-variant);
-}
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  padding-top: env(safe-area-inset-top);
+  border-bottom: 0.5px solid transparent;
+  transition: background-color 0.25s ease, border-color 0.25s ease;
 
-.nav .active {
-  background: var(--mat-sys-secondary-container);
-  color: var(--mat-sys-on-secondary-container);
-}
-
-.user-email {
-  margin: 0 8px 0 16px;
-  font: var(--mat-sys-body-medium);
-  color: var(--mat-sys-on-surface-variant);
-}
-
-@media (max-width: 640px) {
-  .content {
-    padding: 16px 16px 48px;
+  &.scrolled {
+    background: var(--tb-glass);
+    border-bottom-color: var(--tb-separator);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
   }
 }
 
+.topbar-inner {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  height: 56px;
+  padding: 0 16px 0 24px;
+}
+
+.brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  justify-self: start;
+  color: var(--tb-ink);
+  text-decoration: none;
+}
+
+// La marca toma el color de la sección en la que estás
+.mark {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: var(--tb-accent);
+  color: var(--tb-on-accent);
+  transition: background-color 0.3s ease;
+
+  .mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+    font-variation-settings: 'FILL' 0, 'wght' 650, 'GRAD' 0, 'opsz' 20;
+  }
+}
+
+.brand-name {
+  font: 600 17px / 1 var(--tb-font-display);
+  letter-spacing: -0.02em;
+}
+
+// ── Navegación: píldoras centradas ──────────────────────
 .nav {
   display: flex;
   gap: 4px;
 }
 
-// Tablet: fuera el email
-@media (max-width: 800px) {
+.nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  color: var(--tb-ink-2);
+  font: 500 14px / 1 var(--tb-font);
+  text-decoration: none;
+  transition: background-color 0.2s ease, color 0.2s ease;
+
+  .mat-icon {
+    width: 20px;
+    height: 20px;
+    font-size: 20px;
+  }
+
+  &:hover:not(.active) {
+    background: var(--tb-hover);
+    color: var(--tb-ink);
+  }
+
+  &.active {
+    background: var(--tb-accent-soft);
+    color: var(--tb-accent);
+    font-weight: 600;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tb-accent);
+    outline-offset: 2px;
+  }
+}
+
+.account {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-self: end;
+  min-width: 0;
+  color: var(--tb-ink-2);
+}
+
+.user-email {
+  overflow: hidden;
+  font: 400 13px / 1 var(--tb-font);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+// ── Contenido: ocupa el ancho disponible ────────────────
+.content {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 8px 32px 64px;
+}
+
+@media (max-width: 960px) {
   .user-email {
     display: none;
   }
 }
 
-// Móvil: solo iconos
-@media (max-width: 600px) {
+// ── Escritorio: barra lateral ───────────────────────────
+@media (min-width: 1100px) {
   .topbar {
-    padding: 0 4px 0 12px;
-  }
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: $sidebar-width;
+    padding-top: 0;
+    border-bottom: none;
+    border-right: 0.5px solid var(--tb-separator);
+    background: var(--tb-sidebar);
+    backdrop-filter: blur(30px) saturate(180%);
+    -webkit-backdrop-filter: blur(30px) saturate(180%);
 
-  .brand,
-  .nav-label {
-    display: none;
-  }
-
-  .nav a {
-    min-width: 48px;
-    padding: 0 12px;
-
-    mat-icon {
-      margin: 0;
+    // En la barra lateral el scroll no cambia nada
+    &.scrolled {
+      background: var(--tb-sidebar);
+      border-bottom-color: transparent;
     }
+  }
+
+  .topbar-inner {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 24px;
+    height: 100%;
+    padding: 22px 12px 14px;
+  }
+
+  .brand {
+    padding: 0 8px;
+  }
+
+  .nav {
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  // Filas de la barra lateral: icono siempre en el color de su sección
+  .nav-link {
+    gap: 10px;
+    height: 38px;
+    padding: 0 10px;
+    border-radius: 9px;
+    color: var(--tb-ink);
+    font-size: 15px;
+
+    .mat-icon {
+      width: 22px;
+      height: 22px;
+      font-size: 22px;
+      color: var(--item-color);
+    }
+
+    &.active {
+      background: var(--tb-accent-soft);
+      color: var(--tb-ink);
+    }
+  }
+
+  .account {
+    justify-content: space-between;
+    margin-top: auto;
+    padding: 12px 0 0 10px;
+    border-top: 0.5px solid var(--tb-separator);
+  }
+
+  .content.with-tabbar {
+    max-width: calc(1640px + #{$sidebar-width});
+    padding: 28px 40px 64px calc(#{$sidebar-width} + 40px);
+  }
+}
+
+// ── Móvil: barra de pestañas inferior estilo iOS ───────
+@media (max-width: 700px) {
+  .topbar-inner {
+    display: flex;
+    justify-content: space-between;
+    height: 48px;
+    padding: 0 4px 0 16px;
+  }
+
+  .nav {
+    position: fixed;
+    inset: auto 0 0;
+    z-index: 100;
+    justify-content: space-around;
+    gap: 0;
+    padding: 6px 8px calc(6px + env(safe-area-inset-bottom));
+    background: var(--tb-glass);
+    border-top: 0.5px solid var(--tb-separator);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+
+  .nav-link {
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    height: 50px;
+    padding: 0;
+    border-radius: 12px;
+    font-size: 11px;
+
+    .mat-icon {
+      width: 26px;
+      height: 26px;
+      font-size: 26px;
+    }
+
+    &.active {
+      background: none;
+    }
+  }
+
+  .content {
+    padding: 4px 16px 32px;
+  }
+
+  .content.with-tabbar {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom));
   }
 }

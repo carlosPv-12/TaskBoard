@@ -38,6 +38,9 @@ namespace TaskBoard.Api.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
                     b.Property<int>("UserId")
                         .HasColumnType("int");
 
@@ -358,6 +361,24 @@ namespace TaskBoard.Api.Migrations
                     b.ToTable("WorkoutSessions");
                 });
 
+            modelBuilder.Entity("TaskBoard.Api.Models.WorkoutSessionRoutine", b =>
+                {
+                    b.Property<int>("WorkoutSessionId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("RoutineId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Order")
+                        .HasColumnType("int");
+
+                    b.HasKey("WorkoutSessionId", "RoutineId");
+
+                    b.HasIndex("RoutineId");
+
+                    b.ToTable("WorkoutSessionRoutines");
+                });
+
             modelBuilder.Entity("TaskBoard.Api.Models.WorkoutSet", b =>
                 {
                     b.Property<int>("Id")
@@ -366,7 +387,14 @@ namespace TaskBoard.Api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<int>("Reps")
+                    b.Property<decimal?>("DistanceKm")
+                        .HasPrecision(7, 2)
+                        .HasColumnType("decimal(7,2)");
+
+                    b.Property<int?>("DurationSeconds")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Reps")
                         .HasColumnType("int");
 
                     b.Property<int>("SessionExerciseId")
@@ -375,7 +403,7 @@ namespace TaskBoard.Api.Migrations
                     b.Property<int>("SetNumber")
                         .HasColumnType("int");
 
-                    b.Property<decimal>("Weight")
+                    b.Property<decimal?>("Weight")
                         .HasPrecision(8, 2)
                         .HasColumnType("decimal(8,2)");
 
@@ -527,6 +555,25 @@ namespace TaskBoard.Api.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("TaskBoard.Api.Models.WorkoutSessionRoutine", b =>
+                {
+                    b.HasOne("TaskBoard.Api.Models.Routine", "Routine")
+                        .WithMany()
+                        .HasForeignKey("RoutineId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("TaskBoard.Api.Models.WorkoutSession", "WorkoutSession")
+                        .WithMany("SessionRoutines")
+                        .HasForeignKey("WorkoutSessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Routine");
+
+                    b.Navigation("WorkoutSession");
+                });
+
             modelBuilder.Entity("TaskBoard.Api.Models.WorkoutSet", b =>
                 {
                     b.HasOne("TaskBoard.Api.Models.SessionExercise", "SessionExercise")
@@ -561,6 +608,8 @@ namespace TaskBoard.Api.Migrations
             modelBuilder.Entity("TaskBoard.Api.Models.WorkoutSession", b =>
                 {
                     b.Navigation("SessionExercises");
+
+                    b.Navigation("SessionRoutines");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,10 +1,19 @@
 import { Routes } from '@angular/router';
 import { provideCharts, withDefaultRegisterables } from 'ng2-charts';
+import { SectionTab } from '../../shared/components/section-shell/section-shell.component';
+
+const GYM_TABS: SectionTab[] = [
+  { path: 'calendar', label: 'Calendario', icon: 'calendar_month' },
+  { path: 'routines', label: 'Rutinas', icon: 'fitness_center' },
+  { path: 'progress', label: 'Progreso', icon: 'show_chart' }
+];
 
 export const GYM_ROUTES: Routes = [
   {
     path: '',
-    loadComponent: () => import('./gym-shell/gym-shell.component').then(m => m.GymShellComponent),
+    loadComponent: () =>
+      import('../../shared/components/section-shell/section-shell.component').then(m => m.SectionShellComponent),
+    data: { heading: 'Gimnasio', tabs: GYM_TABS },
     children: [
       {
         path: 'calendar',

@@ -1,34 +1,86 @@
+// Una fila de la lista agrupada: sin tarjeta propia, separada de la anterior por una línea fina
+// que empieza donde empieza el texto (como en las listas de iOS).
 :host {
   display: block;
 }
 
 .task {
+  position: relative;
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 8px 10px 6px;
-  border-radius: 16px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
-  border-left-width: 4px;
-  transition: border-color 0.2s ease, background-color 0.2s ease, opacity 0.2s ease;
+  gap: 14px;
+  min-height: 64px;
+  padding: 10px 10px 10px 16px;
+  transition: background-color 0.2s ease;
 
   &:hover {
-    background: var(--mat-sys-surface-container);
+    background: var(--tb-hover);
   }
 
+  // Cronómetro en marcha: la fila se tiñe del color de la sección
   &.running {
-    border-color: var(--mat-sys-primary);
-    background: var(--mat-sys-surface-container);
+    background: var(--tb-accent-soft);
+  }
+
+  &.done .title {
+    text-decoration: line-through;
+    color: var(--tb-ink-2);
+  }
+}
+
+:host(:not(:first-child)) .task::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  left: 54px;
+  height: 0.5px;
+  background: var(--tb-separator);
+}
+
+// ── Casilla redonda ─────────────────────────────────────
+.check {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid var(--mat-sys-outline);
+  background: transparent;
+  color: var(--tb-on-accent);
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+
+  &:hover:not(:disabled) {
+    border-color: var(--tb-accent);
+  }
+
+  &:active:not(:disabled) {
+    transform: scale(0.88);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tb-accent);
+    outline-offset: 2px;
   }
 
   &.done {
-    opacity: 0.65;
+    border-color: var(--tb-accent);
+    background: var(--tb-accent);
+  }
 
-    .title {
-      text-decoration: line-through;
-      color: var(--mat-sys-on-surface-variant);
-    }
+  &:disabled {
+    cursor: default;
+    opacity: 0.5;
+  }
+
+  mat-icon {
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+    font-variation-settings: 'FILL' 0, 'wght' 650, 'GRAD' 0, 'opsz' 20;
   }
 }
 
@@ -41,7 +93,8 @@
 }
 
 .title {
-  font: var(--mat-sys-title-medium);
+  font: 500 16px / 1.3 var(--tb-font);
+  letter-spacing: -0.01em;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -49,8 +102,20 @@
 }
 
 .meta {
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font: 400 13px / 1.3 var(--tb-font);
+  color: var(--tb-ink-2);
+}
+
+// Separador redondo entre datos de la meta (en lugar de " · ")
+.sep {
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: currentColor;
+  opacity: 0.6;
 }
 
 .edit-row {
@@ -64,10 +129,10 @@
   min-width: 0;
   padding: 6px 10px;
   border-radius: 8px;
-  border: 2px solid var(--mat-sys-primary);
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-title-medium);
+  border: 2px solid var(--tb-accent);
+  background: var(--tb-panel);
+  color: var(--tb-ink);
+  font: 500 16px / 1.3 var(--tb-font);
   outline: none;
 
   &.invalid {
@@ -76,7 +141,7 @@
 }
 
 .edit-error {
-  font: var(--mat-sys-body-small);
+  font: 400 13px / 1.3 var(--tb-font);
   color: var(--mat-sys-error);
 }
 
@@ -88,8 +153,8 @@
 }
 
 .session {
-  font: var(--mat-sys-title-medium);
-  color: var(--mat-sys-primary);
+  font: 600 16px / 1 var(--tb-font);
+  color: var(--tb-accent);
   font-variant-numeric: tabular-nums;
 }
 
@@ -97,36 +162,53 @@
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  padding: 4px 10px;
+  padding: 5px 10px;
   border-radius: 999px;
-  background: var(--mat-sys-surface-container-highest);
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-label-large);
+  background: var(--tb-fill);
+  color: var(--tb-ink-2);
+  font: 500 13px / 1 var(--tb-font);
+  font-variant-numeric: tabular-nums;
 
   mat-icon {
-    font-size: 16px;
-    width: 16px;
-    height: 16px;
+    font-size: 15px;
+    width: 15px;
+    height: 15px;
   }
 }
 
 .live-dot {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--mat-sys-error);
   animation: pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.35; transform: scale(0.75); }
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.75);
+  }
 }
 
 .actions {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
+}
+
+// Botones de la fila más compactos que los principales de la página
+.start,
+.stop {
+  --mat-button-outlined-container-height: 34px;
+  --mat-button-filled-container-height: 34px;
+  --mat-button-outlined-horizontal-padding: 14px;
+  --mat-button-filled-horizontal-padding: 14px;
 }
 
 .stop {
@@ -142,6 +224,7 @@
 @media (max-width: 640px) {
   .task {
     flex-wrap: wrap;
+    row-gap: 6px;
   }
 
   .body {
@@ -149,7 +232,7 @@
   }
 
   .timer {
-    margin-left: 46px;
+    margin-left: 38px;
   }
 
   .actions {

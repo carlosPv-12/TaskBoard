@@ -1,16 +1,41 @@
+// Cabecera tipo "Large Title" de iOS: título grande a la izquierda y el control segmentado al lado
 :host {
   display: block;
 }
 
+.section-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 16px 0 24px;
+}
+
 h1 {
-  margin: 0 0 8px;
-  font: var(--mat-sys-headline-medium);
+  margin: 0;
+  font: 700 34px / 1.12 var(--tb-font-display);
+  letter-spacing: -0.025em;
+  color: var(--tb-ink);
 }
 
-.tab-icon {
-  margin-right: 8px;
-}
+@media (max-width: 700px) {
+  .section-header {
+    margin: 8px 0 18px;
+  }
 
-.section-content {
-  padding-top: 20px;
+  h1 {
+    font-size: 30px;
+  }
+
+  // En el móvil el control ocupa todo el ancho, con segmentos iguales
+  .tb-segmented {
+    display: flex;
+    width: 100%;
+
+    a {
+      flex: 1;
+      padding: 0 8px;
+    }
+  }
 }

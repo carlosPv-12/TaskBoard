@@ -156,3 +156,37 @@
   clip: rect(0 0 0 0);
   white-space: nowrap;
 }
+
+// ── Ejercicios de tiempo ────────────────────────────────
+.title h3 {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.type-icon {
+  font-size: 18px;
+  width: 18px;
+  height: 18px;
+  color: var(--mat-sys-tertiary);
+}
+
+// Min:Seg juntos; distancia y peso opcionales; en móvil el botón baja a su propia línea
+.set-form.time {
+  flex-wrap: wrap;
+
+  .duration-group {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex: 2 1 160px;
+  }
+
+  .field.optional {
+    flex: 1 1 80px;
+  }
+
+  .add-set {
+    flex: 1 0 auto;
+  }
+}

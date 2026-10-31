@@ -41,6 +41,11 @@ export class WorkoutSessionService {
     return this.http.delete<void>(`${this.baseUrl}/${id}`);
   }
 
+  /** Suma los ejercicios de otra rutina al entreno. Devuelve el entreno completo actualizado. */
+  addRoutine(sessionId: number, routineId: number): Observable<WorkoutSession> {
+    return this.http.post<WorkoutSession>(`${this.baseUrl}/${sessionId}/routines`, { routineId });
+  }
+
   // ── Ejercicios de una sesión ───────────────────────────
   addExercise(sessionId: number, request: AddSessionExerciseRequest): Observable<SessionExercise> {
     return this.http.post<SessionExercise>(`${this.baseUrl}/${sessionId}/exercises`, request);

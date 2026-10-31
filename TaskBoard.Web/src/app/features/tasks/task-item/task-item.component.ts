@@ -1,6 +1,5 @@
 import { Component, ElementRef, computed, effect, input, output, signal, viewChild } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
@@ -11,7 +10,7 @@ import { activeEntryOf, elapsedSeconds, totalSecondsOf } from '../task-time';
 
 @Component({
   selector: 'app-task-item',
-  imports: [DatePipe, DurationPipe, MatCheckboxModule, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
+  imports: [DatePipe, DurationPipe, MatButtonModule, MatIconModule, MatMenuModule, MatTooltipModule],
   templateUrl: './task-item.component.html',
   styleUrl: './task-item.component.scss'
 })

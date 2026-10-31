@@ -1,4 +1,4 @@
-import { Component, computed, inject, input, output, signal, viewChild } from '@angular/core';
+import { Component, computed, effect, inject, input, output, signal, untracked, viewChild } from '@angular/core';
 import { FormBuilder, FormGroupDirective, ReactiveFormsModule, Validators } from '@angular/forms';
 import { CdkDrag, CdkDragDrop, CdkDragHandle, CdkDragPlaceholder, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatAutocompleteModule, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -8,7 +8,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { normalizeText } from '../../../shared/utils/normalize-text';
 import { Exercise } from '../models/exercise.models';
-import { CreateRoutineRequest } from '../models/routine.models';
+import { CreateRoutineRequest, Routine } from '../models/routine.models';
 
 @Component({
   selector: 'app-routine-builder',
@@ -33,7 +33,10 @@ export class RoutineBuilderComponent {
 
   readonly exercises = input.required<Exercise[]>();
   readonly saving = input(false);
+  /** Rutina que se está editando; null = modo "Nueva rutina". */
+  readonly editing = input<Routine | null>(null);
   readonly save = output<CreateRoutineRequest>();
+  readonly cancelEdit = output<void>();
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]]
@@ -53,6 +56,32 @@ export class RoutineBuilderComponent {
         (!q || normalizeText(e.name).includes(q) || normalizeText(e.muscleGroup).includes(q))
     );
   });
+
+  constructor() {
+    // Al pulsar "Editar" en una rutina, el formulario se rellena con sus datos actuales
+    effect(() => {
+      const routine = this.editing();
+      if (!routine) return;
+
+      untracked(() => {
+        const catalog = new Map(this.exercises().map(e => [e.id, e]));
+        this.form.reset({ name: routine.name });
+        this.selected.set(
+          routine.exercises.map(
+            item =>
+              catalog.get(item.exerciseId) ?? {
+                id: item.exerciseId,
+                name: item.exerciseName,
+                muscleGroup: '',
+                type: item.exerciseType
+              }
+          )
+        );
+        this.query.set('');
+        this.submitted.set(false);
+      });
+    });
+  }
 
   add(event: MatAutocompleteSelectedEvent, input: HTMLInputElement): void {
     const exercise = event.option.value as Exercise;

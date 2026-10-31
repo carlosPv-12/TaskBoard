@@ -150,3 +150,17 @@ mat-icon[matPrefix] {
   justify-content: flex-end;
   gap: 8px;
 }
+
+.edit-note {
+  margin: -4px 0 0;
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.type-icon {
+  font-size: 16px;
+  width: 16px;
+  height: 16px;
+  vertical-align: -3px;
+  color: var(--mat-sys-tertiary);
+}

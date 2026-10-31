@@ -11,6 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import {
@@ -19,10 +20,13 @@ import {
 } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { normalizeText } from '../../../shared/utils/normalize-text';
 import { parseIsoDate } from '../../../shared/utils/local-date';
+import { DurationPipe } from '../../../shared/pipes/duration.pipe';
 import { NewSetEvent, SessionExerciseCardComponent } from '../session-exercise-card/session-exercise-card.component';
 import { ExerciseService } from '../services/exercise.service';
+import { RoutineService } from '../services/routine.service';
 import { WorkoutSessionService } from '../services/workout-session.service';
 import { Exercise } from '../models/exercise.models';
+import { Routine } from '../models/routine.models';
 import { SessionExercise, WorkoutSession } from '../models/workout-session.models';
 
 @Component({
@@ -37,7 +41,9 @@ import { SessionExercise, WorkoutSession } from '../models/workout-session.model
     MatFormFieldModule,
     MatIconModule,
     MatInputModule,
+    MatMenuModule,
     MatProgressBarModule,
+    DurationPipe,
     SessionExerciseCardComponent
   ],
   templateUrl: './session-detail.component.html',
@@ -46,6 +52,7 @@ import { SessionExercise, WorkoutSession } from '../models/workout-session.model
 export class SessionDetailComponent {
   private readonly sessionService = inject(WorkoutSessionService);
   private readonly exerciseService = inject(ExerciseService);
+  private readonly routineService = inject(RoutineService);
   private readonly router = inject(Router);
   private readonly dialog = inject(MatDialog);
   private readonly snackBar = inject(MatSnackBar);
@@ -57,10 +64,12 @@ export class SessionDetailComponent {
   // ── Estado ──────────────────────────────────────────────
   readonly session = signal<WorkoutSession | null>(null);
   readonly catalog = signal<Exercise[]>([]);
+  readonly routines = signal<Routine[]>([]);
   readonly loading = signal(true);
   readonly loadError = signal<string | null>(null);
   readonly busyIds = signal<ReadonlySet<number>>(new Set());
   readonly addingExercise = signal(false);
+  readonly addingRoutine = signal(false);
   readonly savingDuration = signal(false);
   readonly deleting = signal(false);
   readonly query = signal('');
@@ -81,8 +90,17 @@ export class SessionDetailComponent {
     return {
       exercises: exercises.length,
       sets: sets.length,
-      volume: sets.reduce((sum, s) => sum + s.weight * s.reps, 0)
+      volume: sets.reduce((sum, s) => sum + (s.weight ?? 0) * (s.reps ?? 0), 0),
+      seconds: sets.reduce((sum, s) => sum + (s.durationSeconds ?? 0), 0)
     };
+  });
+
+  /** Rutinas que aún no están en este entreno, para el menú "Añadir rutina". */
+  readonly availableRoutines = computed(() => {
+    const inSession = new Set(this.session()?.routines.map(r => r.id) ?? []);
+    return this.routines()
+      .filter(r => !inSession.has(r.id))
+      .sort((a, b) => a.name.localeCompare(b.name, 'es'));
   });
 
   /** Catálogo menos los ejercicios que ya están en el entreno, filtrado por la búsqueda. */
@@ -107,7 +125,8 @@ export class SessionDetailComponent {
         switchMap(id =>
           forkJoin({
             session: this.sessionService.getById(id),
-            catalog: this.exerciseService.getAll()
+            catalog: this.exerciseService.getAll(),
+            routines: this.routineService.getAll()
           }).pipe(
             catchError((error: HttpErrorResponse) => {
               this.loadError.set(
@@ -123,6 +142,7 @@ export class SessionDetailComponent {
         if (result) {
           this.session.set(result.session);
           this.catalog.set(result.catalog);
+          this.routines.set(result.routines);
           this.durationForm.reset({ durationMinutes: result.session.durationMinutes });
         }
         this.loading.set(false);
@@ -169,6 +189,25 @@ export class SessionDetailComponent {
           this.router.navigate(['/gym/calendar']);
         },
         error: () => this.notify('No se pudo eliminar el entreno.')
+      });
+  }
+
+  // ── Rutinas ─────────────────────────────────────────────
+  /** Suma los ejercicios de otra rutina al final del entreno. */
+  addRoutine(routine: Routine): void {
+    const session = this.session();
+    if (!session) return;
+
+    this.addingRoutine.set(true);
+    this.sessionService
+      .addRoutine(session.id, routine.id)
+      .pipe(finalize(() => this.addingRoutine.set(false)))
+      .subscribe({
+        next: updated => {
+          this.session.set(updated);
+          this.notify(`Rutina "${routine.name}" añadida: ${routine.exercises.length} ejercicios más`);
+        },
+        error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo añadir la rutina.'))
       });
   }
 

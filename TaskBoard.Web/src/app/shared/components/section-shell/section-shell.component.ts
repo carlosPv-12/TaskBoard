@@ -1,6 +1,5 @@
 import { Component, input } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
-import { MatTabsModule } from '@angular/material/tabs';
 import { MatIconModule } from '@angular/material/icon';
 
 export interface SectionTab {
@@ -10,12 +9,12 @@ export interface SectionTab {
 }
 
 /**
- * Cabecera con título + pestañas y un <router-outlet> para las rutas hijas.
+ * Cabecera de sección (título grande + control segmentado) y un <router-outlet> para las rutas hijas.
  * heading y tabs llegan desde `data` de la ruta gracias a withComponentInputBinding().
  */
 @Component({
   selector: 'app-section-shell',
-  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatTabsModule, MatIconModule],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, MatIconModule],
   templateUrl: './section-shell.component.html',
   styleUrl: './section-shell.component.scss'
 })

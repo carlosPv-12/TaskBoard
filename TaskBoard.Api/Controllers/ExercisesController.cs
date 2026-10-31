@@ -47,6 +47,7 @@ public class ExercisesController : ControllerBase
         {
             Name = dto.Name,
             MuscleGroup = dto.MuscleGroup,
+            Type = dto.Type,
             UserId = User.GetUserId()
         };
 
@@ -66,8 +67,16 @@ public class ExercisesController : ControllerBase
             return NotFound();
         }
 
+        // Cambiar fuerza <-> tiempo con series ya registradas dejaría datos incoherentes (y la gráfica rota)
+        if (exercise.Type != dto.Type &&
+            await _context.WorkoutSets.AnyAsync(s => s.SessionExercise!.ExerciseId == id))
+        {
+            return Conflict(new { error = "No se puede cambiar el tipo: el ejercicio ya tiene series registradas." });
+        }
+
         exercise.Name = dto.Name;
         exercise.MuscleGroup = dto.MuscleGroup;
+        exercise.Type = dto.Type;
         await _context.SaveChangesAsync();
 
         return NoContent();
@@ -109,6 +118,7 @@ public class ExercisesController : ControllerBase
     {
         Id = exercise.Id,
         Name = exercise.Name,
-        MuscleGroup = exercise.MuscleGroup
+        MuscleGroup = exercise.MuscleGroup,
+        Type = exercise.Type
     };
 }

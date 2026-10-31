@@ -1,39 +1,305 @@
-
-// Include theming for Angular Material with `mat.theme()`.
-// This Sass mixin will define CSS variables that are used for styling Angular Material
-// components according to the Material 3 design spec.
-// Learn more about theming and how to use it for your application's
-// custom components at https://material.angular.dev/guide/theming
 @use '@angular/material' as mat;
 
+// ═══════════════════════════════════════════════════════════════════════
+// TaskBoard · estilo Apple
+// Paneles blancos sobre fondo gris, tipografía SF Pro / Inter y un color
+// de acento por sección (como Salud o Fitness). Modo oscuro según el sistema.
+//
+// Todo el resto de la app usa las variables --mat-sys-*: aquí se redefinen
+// para que el cambio llegue a todas las pantallas sin tocarlas una a una.
+// ═══════════════════════════════════════════════════════════════════════
+
+$font-text: ('SF Pro Text', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif);
+$font-display: ('SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif);
+
 html {
+  // "light dark" + theme-type color-scheme: Material genera los dos modos con light-dark()
+  color-scheme: light dark;
+
   @include mat.theme((
     color: (
-      primary: mat.$azure-palette,
-      tertiary: mat.$blue-palette,
+      primary: mat.$blue-palette,
+      theme-type: color-scheme
     ),
-    typography: Roboto,
-    density: 0,
+    typography: (
+      plain-family: $font-text,
+      brand-family: $font-display,
+      bold-weight: 600,
+      medium-weight: 500,
+      regular-weight: 400
+    ),
+    density: 0
+  ));
+
+  // ── Paleta propia (claro, oscuro) ───────────────────────────────────
+  --tb-font: #{$font-text};
+  --tb-font-display: #{$font-display};
+
+  --tb-canvas: light-dark(#f5f5f7, #000000);          // fondo de la app
+  --tb-panel: light-dark(#ffffff, #1c1c1e);           // paneles y listas agrupadas
+  --tb-panel-raised: light-dark(#ffffff, #2c2c2e);    // menús, diálogos, popovers
+  --tb-fill: light-dark(#ececf0, #2c2c2e);            // campos, pistas de controles segmentados
+  --tb-hover: light-dark(rgb(0 0 0 / 0.04), rgb(255 255 255 / 0.06));
+  --tb-segment-selected: light-dark(#ffffff, #636366);
+  --tb-ink: light-dark(#1d1d1f, #f5f5f7);             // texto principal
+  --tb-ink-2: light-dark(#6e6e73, #98989d);           // texto secundario
+  --tb-separator: light-dark(rgb(60 60 67 / 0.16), rgb(84 84 88 / 0.65));
+  --tb-glass: light-dark(rgb(245 245 247 / 0.72), rgb(22 22 23 / 0.72));
+  --tb-shadow-pop: 0 10px 40px rgb(0 0 0 / 0.12), 0 2px 8px rgb(0 0 0 / 0.06);
+
+  // Color propio de cada sección (Tareas índigo, Hábitos verde, Gimnasio naranja)
+  --tb-tasks: light-dark(#5e5ce6, #7d7aff);
+  --tb-habits: light-dark(#248a3d, #30d158);
+  --tb-gym: light-dark(#c93400, #ff9f0a);
+
+  // Barra lateral del escritorio: material translúcido, como el de las barras laterales de macOS
+  --tb-sidebar: light-dark(rgb(232 232 237 / 0.78), rgb(28 28 30 / 0.78));
+
+  // Acento por defecto (login y pantallas sin sección): azul de sistema
+  --tb-accent: light-dark(#0071e3, #0a84ff);
+  --tb-accent-soft: light-dark(rgb(0 113 227 / 0.1), rgb(10 132 255 / 0.22));
+  --tb-on-accent: #ffffff;
+
+  // ── Se conectan los tokens de Material a la paleta ──────────────────
+  --mat-sys-background: var(--tb-canvas);
+  // Superficie de componentes = panel (el fondo de la página lo pinta body con --tb-canvas)
+  --mat-sys-surface: var(--tb-panel);
+  --mat-sys-surface-bright: var(--tb-panel);
+  --mat-sys-surface-container-lowest: var(--tb-panel);
+  --mat-sys-surface-container-low: var(--tb-panel);
+  --mat-sys-surface-container: var(--tb-panel-raised);
+  --mat-sys-surface-container-high: var(--tb-fill);
+  --mat-sys-surface-container-highest: var(--tb-fill);
+  --mat-sys-on-surface: var(--tb-ink);
+  --mat-sys-on-surface-variant: var(--tb-ink-2);
+  --mat-sys-outline: light-dark(#c7c7cc, #48484a);
+  --mat-sys-outline-variant: var(--tb-separator);
+
+  --mat-sys-primary: var(--tb-accent);
+  --mat-sys-on-primary: var(--tb-on-accent);
+  --mat-sys-primary-container: var(--tb-accent-soft);
+  --mat-sys-on-primary-container: var(--tb-accent);
+  --mat-sys-secondary-container: var(--tb-accent-soft);
+  --mat-sys-on-secondary-container: var(--tb-accent);
+  --mat-sys-tertiary: var(--tb-accent);
+  --mat-sys-inverse-surface: light-dark(#1d1d1f, #f5f5f7);
+  --mat-sys-inverse-on-surface: light-dark(#f5f5f7, #1d1d1f);
+
+  --mat-sys-error: light-dark(#d70015, #ff453a);
+  --mat-sys-on-error: #ffffff;
+  --mat-sys-error-container: light-dark(#ffebed, #3b1513);
+  --mat-sys-on-error-container: light-dark(#a3000f, #ff7a70);
+
+  // ── Componentes de Material con aire de iOS/macOS ───────────────────
+  @include mat.button-overrides((
+    filled-container-shape: 999px,
+    filled-container-height: 44px,
+    filled-horizontal-padding: 22px,
+    filled-label-text-weight: 600,
+    outlined-container-shape: 999px,
+    outlined-container-height: 44px,
+    outlined-horizontal-padding: 20px,
+    outlined-outline-color: var(--tb-separator),
+    outlined-label-text-weight: 600,
+    text-container-shape: 999px,
+    text-label-text-weight: 600,
+    tonal-container-shape: 999px,
+    protected-container-shape: 999px
+  ));
+
+  // Campos más bajos y discretos: borde suave, más visible al pasar el ratón y del color de la sección al escribir
+  @include mat.form-field-overrides((
+    container-height: 48px,
+    container-vertical-padding: 12px,
+    outlined-container-shape: 12px,
+    outlined-outline-color: light-dark(#d1d1d6, #3a3a3c),
+    outlined-hover-outline-color: light-dark(#aeaeb2, #545458),
+    outlined-focus-outline-width: 2px,
+    outlined-label-text-size: 15px
+  ));
+
+  // Grupos de botones = control segmentado: pista gris y segmento elegido "flotando"
+  @include mat.button-toggle-overrides((
+    shape: 10px,
+    divider-color: transparent,
+    background-color: transparent,
+    selected-state-background-color: var(--tb-segment-selected),
+    selected-state-text-color: var(--tb-ink),
+    label-text-weight: 500
+  ));
+
+  @include mat.menu-overrides((
+    container-shape: 14px,
+    container-color: var(--tb-panel-raised),
+    container-elevation-shadow: var(--tb-shadow-pop)
+  ));
+
+  @include mat.dialog-overrides((
+    container-shape: 22px,
+    container-color: var(--tb-panel-raised)
+  ));
+
+  @include mat.snack-bar-overrides((
+    container-shape: 14px
+  ));
+
+  @include mat.autocomplete-overrides((
+    container-shape: 14px,
+    background-color: var(--tb-panel-raised),
+    container-elevation-shadow: var(--tb-shadow-pop)
+  ));
+
+  @include mat.select-overrides((
+    panel-background-color: var(--tb-panel-raised),
+    container-elevation-shadow: var(--tb-shadow-pop)
   ));
 }
 
-body {
-  // Default the application to a light color theme. This can be changed to
-  // `dark` to enable the dark color theme, or to `light dark` to defer to the
-  // user's system settings.
-  color-scheme: light;
-
-  // Set a default background, font and text colors for the application using
-  // Angular Material's system-level CSS variables. Learn more about these
-  // variables at https://material.angular.dev/guide/system-variables
-  background-color: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
-  font: var(--mat-sys-body-medium);
-
-  // Reset the user agent margin.
-  margin: 0;
+// ── Un acento por sección (el atributo lo pone App según la ruta) ───────
+// Los colores oscuros más luminosos llevan texto negro encima para mantener el contraste.
+html[data-section='tasks'] {
+  --tb-accent: var(--tb-tasks);
+  --tb-accent-soft: light-dark(rgb(94 92 230 / 0.11), rgb(125 122 255 / 0.22));
+  --tb-on-accent: #ffffff;
 }
-/* You can add global styles to this file, and also import other style files */
 
-html, body { height: 100%; }
-body { margin: 0; font-family: Roboto, "Helvetica Neue", sans-serif; }
+html[data-section='habits'] {
+  --tb-accent: var(--tb-habits);
+  --tb-accent-soft: light-dark(rgb(36 138 61 / 0.11), rgb(48 209 88 / 0.2));
+  --tb-on-accent: light-dark(#ffffff, #000000);
+}
+
+html[data-section='gym'] {
+  --tb-accent: var(--tb-gym);
+  --tb-accent-soft: light-dark(rgb(201 52 0 / 0.1), rgb(255 159 10 / 0.2));
+  --tb-on-accent: light-dark(#ffffff, #000000);
+}
+
+// ── Base ────────────────────────────────────────────────────────────────
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--tb-canvas);
+  color: var(--tb-ink);
+  font: var(--mat-sys-body-medium);
+  font-family: var(--tb-font);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+a {
+  color: var(--tb-accent);
+}
+
+::selection {
+  background: var(--tb-accent-soft);
+}
+
+// Iconos: trazo fino por defecto; relleno donde se pida (pestaña activa)
+.material-symbols-rounded {
+  font-variation-settings: 'FILL' 0, 'wght' 450, 'GRAD' 0, 'opsz' 24;
+}
+
+.tb-icon-filled {
+  font-variation-settings: 'FILL' 1, 'wght' 500, 'GRAD' 0, 'opsz' 24;
+}
+
+// ── Control segmentado (pestañas de cada sección) ──────────────────────
+.tb-segmented {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  max-width: 100%;
+  border-radius: 10px;
+  background: var(--tb-fill);
+  overflow-x: auto;
+  scrollbar-width: none;
+
+  a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-height: 32px;
+    padding: 0 14px;
+    border-radius: 8px;
+    color: var(--tb-ink);
+    font: 500 14px / 1 var(--tb-font);
+    text-decoration: none;
+    white-space: nowrap;
+    transition: background-color 0.2s ease, box-shadow 0.2s ease;
+
+    .mat-icon {
+      width: 18px;
+      height: 18px;
+      font-size: 18px;
+      color: var(--tb-ink-2);
+    }
+
+    &:hover:not(.active) {
+      background: var(--tb-hover);
+    }
+
+    &.active {
+      background: var(--tb-segment-selected);
+      box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.06);
+      font-weight: 600;
+
+      .mat-icon {
+        color: var(--tb-accent);
+      }
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--tb-accent);
+      outline-offset: 2px;
+    }
+  }
+}
+
+// mat-button-toggle con el mismo aspecto que .tb-segmented
+.mat-button-toggle-group-appearance-standard {
+  gap: 2px;
+  padding: 2px;
+  border-radius: 10px !important;
+  background: var(--tb-fill);
+}
+
+.mat-button-toggle-appearance-standard {
+  border-radius: 8px;
+
+  &.mat-button-toggle-checked {
+    box-shadow: 0 1px 2px rgb(0 0 0 / 0.08), 0 2px 8px rgb(0 0 0 / 0.06);
+  }
+}
+
+// Sin asterisco de "obligatorio": el error ya lo explica si falta algo
+.mat-mdc-form-field-required-marker {
+  display: none;
+}
+
+// ── Superficies flotantes con desenfoque ────────────────────────────────
+.mat-mdc-snack-bar-container .mdc-snackbar__surface {
+  backdrop-filter: blur(20px) saturate(180%);
+}
+
+.mat-mdc-select-panel {
+  border-radius: 14px !important;
+}
+
+// ── Accesibilidad: sin animaciones si el sistema lo pide ────────────────
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

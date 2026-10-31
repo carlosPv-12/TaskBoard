@@ -2,7 +2,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { CreateRoutineRequest, Routine } from '../models/routine.models';
+import { CreateRoutineRequest, Routine, UpdateRoutineRequest } from '../models/routine.models';
 
 @Injectable({ providedIn: 'root' })
 export class RoutineService {
@@ -15,6 +15,10 @@ export class RoutineService {
 
   create(request: CreateRoutineRequest): Observable<Routine> {
     return this.http.post<Routine>(this.baseUrl, request);
+  }
+
+  update(id: number, request: UpdateRoutineRequest): Observable<Routine> {
+    return this.http.put<Routine>(`${this.baseUrl}/${id}`, request);
   }
 
   /** 409 Conflict si la rutina ya se usó en alguna sesión. */

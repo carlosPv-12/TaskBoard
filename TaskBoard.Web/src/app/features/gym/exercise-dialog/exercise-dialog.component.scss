@@ -5,3 +5,27 @@
   min-width: min(360px, 80vw);
   padding-top: 8px !important;
 }
+
+.type-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  mat-button-toggle-group {
+    width: 100%;
+  }
+
+  mat-button-toggle {
+    flex: 1;
+  }
+}
+
+.type-label {
+  font: var(--mat-sys-label-large);
+  color: var(--mat-sys-on-surface-variant);
+}
+
+.type-hint {
+  font: var(--mat-sys-body-small);
+  color: var(--mat-sys-on-surface-variant);
+}

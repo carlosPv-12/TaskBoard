@@ -1,9 +1,17 @@
 <article class="task" [class.done]="task().isDone" [class.running]="isRunning()">
-  <mat-checkbox
-    [checked]="task().isDone"
+  <!-- Casilla redonda, como en Recordatorios -->
+  <button
+    type="button"
+    class="check"
+    [class.done]="task().isDone"
     [disabled]="busy()"
-    (change)="toggleDone.emit()"
-    [aria-label]="task().isDone ? 'Marcar como pendiente' : 'Marcar como completada'" />
+    (click)="toggleDone.emit()"
+    [attr.aria-pressed]="task().isDone"
+    [attr.aria-label]="task().isDone ? 'Marcar como pendiente' : 'Marcar como completada'">
+    @if (task().isDone) {
+      <mat-icon>check</mat-icon>
+    }
+  </button>
 
   <div class="body">
     @if (editing()) {
@@ -31,9 +39,10 @@
         {{ task().title }}
       </span>
       <span class="meta">
-        Creada el {{ task().createdAt | date: "d MMM, HH:mm" }}
+        {{ task().createdAt | date: "d MMM, HH:mm" }}
         @if (entries().length > 0) {
-          · {{ entries().length }} {{ entries().length === 1 ? 'sesión' : 'sesiones' }}
+          <span class="sep" aria-hidden="true"></span>
+          {{ entries().length }} {{ entries().length === 1 ? 'sesión' : 'sesiones' }}
         }
       </span>
     }
@@ -59,6 +68,7 @@
     } @else {
       <button
         mat-stroked-button
+        class="start"
         [disabled]="busy() || task().isDone"
         (click)="startTimer.emit()"
         [matTooltip]="task().isDone ? 'La tarea ya está completada' : ''">

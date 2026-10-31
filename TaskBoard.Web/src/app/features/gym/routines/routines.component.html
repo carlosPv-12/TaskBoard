@@ -40,6 +40,19 @@
           }
         </mat-form-field>
 
+        <mat-button-toggle-group
+          formControlName="type"
+          class="type-toggle"
+          hideSingleSelectionIndicator
+          aria-label="Tipo de ejercicio">
+          <mat-button-toggle value="Strength" matTooltip="Peso y repeticiones" aria-label="Fuerza">
+            <mat-icon>fitness_center</mat-icon>
+          </mat-button-toggle>
+          <mat-button-toggle value="Time" matTooltip="Tiempo (plancha, cinta...)" aria-label="Tiempo">
+            <mat-icon>timer</mat-icon>
+          </mat-button-toggle>
+        </mat-button-toggle-group>
+
         <button mat-flat-button type="submit" class="add-btn" [disabled]="creatingExercise()">
           <mat-icon>add</mat-icon> Añadir
         </button>
@@ -75,6 +88,9 @@
                   [disabled]="busyExerciseIds().has(exercise.id)"
                   [matMenuTriggerFor]="exerciseMenu"
                   [attr.aria-label]="'Acciones para ' + exercise.name">
+                  @if (exercise.type === 'Time') {
+                    <mat-icon class="chip-type" aria-label="Ejercicio de tiempo">timer</mat-icon>
+                  }
                   {{ exercise.name }}
                   <mat-icon class="chip-icon">expand_more</mat-icon>
                 </button>
@@ -109,11 +125,16 @@
       <app-routine-builder
         [exercises]="sortedExercises()"
         [saving]="savingRoutine()"
-        (save)="saveRoutine($event)" />
+        [editing]="editingRoutine()"
+        (save)="saveRoutine($event)"
+        (cancelEdit)="cancelEditRoutine()" />
 
       <div class="routine-list">
         @for (routine of sortedRoutines(); track routine.id) {
-          <article class="routine-card" [class.deleting]="deletingRoutineIds().has(routine.id)">
+          <article
+            class="routine-card"
+            [class.deleting]="deletingRoutineIds().has(routine.id)"
+            [class.editing]="editingRoutine()?.id === routine.id">
             <header class="routine-header">
               <div class="routine-info">
                 <h3>{{ routine.name }}</h3>
@@ -130,6 +151,10 @@
                 <mat-icon>more_vert</mat-icon>
               </button>
               <mat-menu #routineMenu="matMenu" xPosition="before">
+                <button mat-menu-item (click)="editRoutine(routine)">
+                  <mat-icon>edit</mat-icon>
+                  <span>Editar rutina</span>
+                </button>
                 <button mat-menu-item class="danger" (click)="deleteRoutine(routine)">
                   <mat-icon>delete</mat-icon>
                   <span>Eliminar rutina</span>
@@ -142,6 +167,9 @@
                 <li>
                   <span class="n">{{ $index + 1 }}</span>
                   {{ item.exerciseName }}
+                  @if (item.exerciseType === 'Time') {
+                    <mat-icon class="type-icon" aria-label="Ejercicio de tiempo">timer</mat-icon>
+                  }
                 </li>
               }
             </ol>

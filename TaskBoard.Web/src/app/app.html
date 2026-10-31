@@ -1,31 +1,37 @@
 @if (auth.isAuthenticated()) {
-  <mat-toolbar class="topbar">
-    <mat-icon class="logo">dashboard</mat-icon>
-    <span class="brand">TaskBoard</span>
-    <span class="spacer"></span>
+  <header class="topbar" [class.scrolled]="scrolled()">
+    <div class="topbar-inner">
+      <a class="brand" routerLink="/tasks" aria-label="TaskBoard, ir a Tareas">
+        <span class="mark" aria-hidden="true"><mat-icon>check</mat-icon></span>
+        <span class="brand-name">TaskBoard</span>
+      </a>
 
-    <nav class="nav">
-      <a mat-button routerLink="/tasks" routerLinkActive="active" aria-label="Tareas">
-        <mat-icon>checklist</mat-icon>
-        <span class="nav-label">Tareas</span>
-      </a>
-      <a mat-button routerLink="/habits" routerLinkActive="active" aria-label="Hábitos">
-        <mat-icon>self_improvement</mat-icon>
-        <span class="nav-label">Hábitos</span>
-      </a>
-      <a mat-button routerLink="/gym" routerLinkActive="active" aria-label="Gimnasio">
-        <mat-icon>fitness_center</mat-icon>
-        <span class="nav-label">Gimnasio</span>
-      </a>
-    </nav>
+      <!-- En escritorio va en la barra superior; en el móvil, el CSS la convierte en la barra inferior -->
+      <nav class="nav" aria-label="Secciones">
+        @for (item of navItems; track item.path) {
+          <a
+            class="nav-link"
+            [style.--item-color]="'var(--tb-' + item.section + ')'"
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            #rla="routerLinkActive"
+            ariaCurrentWhenActive="page">
+            <mat-icon [class.tb-icon-filled]="rla.isActive">{{ item.icon }}</mat-icon>
+            <span class="nav-label">{{ item.label }}</span>
+          </a>
+        }
+      </nav>
 
-    <span class="user-email">{{ auth.email() }}</span>
-    <button mat-icon-button (click)="auth.logout()" aria-label="Cerrar sesión">
-      <mat-icon>logout</mat-icon>
-    </button>
-  </mat-toolbar>
+      <div class="account">
+        <span class="user-email">{{ auth.email() }}</span>
+        <button mat-icon-button (click)="auth.logout()" aria-label="Cerrar sesión" title="Cerrar sesión">
+          <mat-icon>logout</mat-icon>
+        </button>
+      </div>
+    </div>
+  </header>
 }
 
-<main class="content">
+<main class="content" [class.with-tabbar]="auth.isAuthenticated()">
   <router-outlet />
 </main>

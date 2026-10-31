@@ -1,48 +1,41 @@
+// Calendario del gimnasio con aire de Calendario/Fitness de iOS:
+// paneles planos, días sin bordes, hoy en un círculo naranja y los días entrenados teñidos.
 :host {
   display: block;
 }
 
-// ── Resumen ─────────────────────────────────────────────
+// ── Resumen del mes: una franja con cifras grandes ──────
 .summary {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   margin-bottom: 20px;
+  border-radius: 18px;
+  background: var(--tb-panel);
 }
 
 .stat {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
+  padding: 16px 20px;
 
-  > mat-icon {
-    display: grid;
-    place-items: center;
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    font-size: 22px;
-    background: var(--mat-sys-primary-container);
-    color: var(--mat-sys-on-primary-container);
+  & + .stat {
+    border-left: 0.5px solid var(--tb-separator);
   }
 
   div {
     display: flex;
     flex-direction: column;
+    gap: 2px;
   }
 
   .value {
-    font: var(--mat-sys-title-large);
+    font: 600 28px / 1.1 var(--tb-font-display);
+    letter-spacing: -0.02em;
+    color: var(--tb-accent);
     font-variant-numeric: tabular-nums;
   }
 
   .label {
-    font: var(--mat-sys-body-small);
-    color: var(--mat-sys-on-surface-variant);
+    font: 400 13px / 1.3 var(--tb-font);
+    color: var(--tb-ink-2);
   }
 }
 
@@ -57,9 +50,8 @@
 .calendar,
 .day-panel {
   padding: 16px;
-  border-radius: 20px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--tb-panel);
 }
 
 // ── Calendario ──────────────────────────────────────────
@@ -68,13 +60,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 12px;
-  padding-left: 4px;
+  margin-bottom: 8px;
+  padding-left: 6px;
 
   h2 {
     margin: 0;
-    font: var(--mat-sys-title-large);
-    text-transform: capitalize;
+    font: 600 22px / 1.2 var(--tb-font-display);
+    letter-spacing: -0.02em;
+
+    &::first-letter {
+      text-transform: uppercase;
+    }
   }
 }
 
@@ -82,20 +78,25 @@
   display: flex;
   align-items: center;
   gap: 2px;
+
+  // "Hoy" en el color de la sección, como en iOS
+  .mat-mdc-button {
+    color: var(--tb-accent);
+  }
 }
 
 .weekdays,
 .days {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 6px;
+  gap: 4px;
 }
 
 .weekdays span {
-  padding-bottom: 4px;
+  padding: 4px 0 6px;
   text-align: center;
-  font: var(--mat-sys-label-medium);
-  color: var(--mat-sys-on-surface-variant);
+  font: 600 12px / 1 var(--tb-font);
+  color: var(--tb-ink-2);
 }
 
 .day {
@@ -103,52 +104,54 @@
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
-  min-height: 78px;
+  min-height: 64px;
   min-width: 0;
   padding: 6px;
-  border: 1px solid var(--mat-sys-outline-variant);
+  border: none;
   border-radius: 12px;
-  background: var(--mat-sys-surface);
-  color: var(--mat-sys-on-surface);
+  background: transparent;
+  color: var(--tb-ink);
   font: inherit;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease;
 
   &:hover:not(:disabled) {
-    border-color: var(--mat-sys-outline);
+    background: var(--tb-hover);
   }
 
   &:focus-visible {
-    outline: 3px solid var(--mat-sys-primary);
+    outline: 2px solid var(--tb-accent);
     outline-offset: 1px;
   }
 
   &.outside {
-    opacity: 0.45;
+    opacity: 0.35;
   }
 
+  // Días futuros: solo el número, atenuado
   &:disabled {
     cursor: default;
-    background: transparent;
-    border-style: dashed;
-    opacity: 0.4;
+    opacity: 0.3;
   }
 
   &.trained {
-    background: var(--mat-sys-primary-container);
-    border-color: transparent;
-    color: var(--mat-sys-on-primary-container);
+    background: var(--tb-accent-soft);
+
+    &:hover {
+      background: var(--tb-accent-soft);
+      filter: brightness(0.97);
+    }
   }
 
   &.selected {
-    border-color: var(--mat-sys-primary);
-    box-shadow: 0 0 0 1px var(--mat-sys-primary);
+    box-shadow: inset 0 0 0 2px var(--tb-accent);
   }
 
   &.today .day-number {
-    background: var(--mat-sys-primary);
-    color: var(--mat-sys-on-primary);
+    background: var(--tb-accent);
+    color: var(--tb-on-accent);
+    font-weight: 700;
   }
 }
 
@@ -158,35 +161,38 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  font: var(--mat-sys-label-large);
+  font: 500 15px / 1 var(--tb-font);
+  font-variant-numeric: tabular-nums;
 }
 
+// Nombre de la rutina dentro del día: texto del color de la sección, sin "pastilla"
 .day-label {
   max-width: 100%;
-  padding: 2px 6px;
-  border-radius: 6px;
-  background: var(--mat-sys-primary);
-  color: var(--mat-sys-on-primary);
-  font: var(--mat-sys-label-small);
+  padding: 0 2px;
+  color: var(--tb-accent);
+  font: 600 11px / 1.25 var(--tb-font);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
 .more {
-  font: var(--mat-sys-label-small);
+  padding: 0 2px;
+  color: var(--tb-ink-2);
+  font: 500 11px / 1 var(--tb-font);
 }
 
 // ── Panel del día ───────────────────────────────────────
 .day-panel {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
   padding: 20px;
 
   h2 {
     margin: 2px 0 0;
-    font: var(--mat-sys-title-large);
+    font: 600 22px / 1.2 var(--tb-font-display);
+    letter-spacing: -0.02em;
 
     &::first-letter {
       text-transform: uppercase;
@@ -195,33 +201,41 @@
 }
 
 .eyebrow {
-  font: var(--mat-sys-label-medium);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  color: var(--mat-sys-primary);
+  font: 600 14px / 1 var(--tb-font);
+  color: var(--tb-accent);
 }
 
 .session-list {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  border-radius: 14px;
+  background: var(--tb-fill);
+  overflow: hidden;
 }
 
 .session-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 8px 10px 10px;
-  border-radius: 14px;
-  border: 1px solid var(--mat-sys-outline-variant);
-  background: var(--mat-sys-surface);
+  padding: 10px 10px 10px 12px;
   color: inherit;
   text-decoration: none;
-  transition: border-color 0.15s ease;
+  transition: background-color 0.15s ease;
+
+  & + .session-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 64px;
+    height: 0.5px;
+    background: var(--tb-separator);
+  }
 
   &:hover,
   &:focus-visible {
-    border-color: var(--mat-sys-primary);
+    background: var(--tb-hover);
     outline: none;
   }
 }
@@ -232,9 +246,9 @@
   flex-shrink: 0;
   width: 40px;
   height: 40px;
-  border-radius: 12px;
-  background: var(--mat-sys-primary-container);
-  color: var(--mat-sys-on-primary-container);
+  border-radius: 10px;
+  background: var(--tb-accent);
+  color: var(--tb-on-accent);
 }
 
 .session-info {
@@ -242,19 +256,23 @@
   min-width: 0;
   display: flex;
   flex-direction: column;
+  gap: 2px;
 
   strong {
-    font: var(--mat-sys-title-small);
+    font: 600 15px / 1.3 var(--tb-font);
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
   }
 
   span {
-    font: var(--mat-sys-body-small);
-    color: var(--mat-sys-on-surface-variant);
+    font: 400 13px / 1.3 var(--tb-font);
+    color: var(--tb-ink-2);
   }
 }
 
 .chevron {
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--tb-ink-2);
 }
 
 .no-sessions {
@@ -263,10 +281,10 @@
   gap: 8px;
   margin: 0;
   padding: 14px;
-  border-radius: 12px;
-  border: 1px dashed var(--mat-sys-outline-variant);
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
+  border-radius: 14px;
+  background: var(--tb-fill);
+  color: var(--tb-ink-2);
+  font: 400 14px / 1.3 var(--tb-font);
 }
 
 .create-form {
@@ -274,22 +292,18 @@
   flex-direction: column;
   gap: 10px;
   padding-top: 16px;
-  border-top: 1px solid var(--mat-sys-outline-variant);
+  border-top: 0.5px solid var(--tb-separator);
 
   h3 {
     margin: 0;
-    font: var(--mat-sys-title-medium);
+    font: 600 17px / 1.3 var(--tb-font);
   }
 }
 
 .hint {
   margin: -4px 0 0;
-  font: var(--mat-sys-body-small);
-  color: var(--mat-sys-on-surface-variant);
-
-  a {
-    color: var(--mat-sys-primary);
-  }
+  font: 400 13px / 1.4 var(--tb-font);
+  color: var(--tb-ink-2);
 }
 
 .start-btn {
@@ -304,9 +318,9 @@
   align-items: center;
   gap: 8px;
   padding: 48px 16px;
-  border-radius: 16px;
-  border: 1px dashed var(--mat-sys-outline-variant);
-  color: var(--mat-sys-on-surface-variant);
+  border-radius: 18px;
+  background: var(--tb-panel);
+  color: var(--tb-ink-2);
 
   mat-icon {
     font-size: 40px;
@@ -327,9 +341,17 @@
 }
 
 @media (max-width: 600px) {
+  .stat {
+    padding: 12px 14px;
+
+    .value {
+      font-size: 22px;
+    }
+  }
+
   .day {
     align-items: center;
-    min-height: 50px;
+    min-height: 48px;
     padding: 4px 2px;
   }
 
@@ -338,11 +360,16 @@
     display: none;
   }
 
+  // En el móvil, un punto bajo el número indica que ese día se entrenó
+  .day.trained {
+    background: transparent;
+  }
+
   .day.trained::after {
     content: '';
     width: 6px;
     height: 6px;
     border-radius: 50%;
-    background: var(--mat-sys-primary);
+    background: var(--tb-accent);
   }
 }

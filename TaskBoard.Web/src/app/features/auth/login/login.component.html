@@ -2,10 +2,10 @@
   <mat-card class="auth-card" appearance="outlined">
     <header class="auth-header">
       <div class="logo">
-        <mat-icon>dashboard</mat-icon>
+        <mat-icon>check</mat-icon>
       </div>
       <h1>TaskBoard</h1>
-      <p>{{ mode() === 'login' ? 'Inicia sesión para continuar' : 'Crea tu cuenta en segundos' }}</p>
+      <p>{{ mode() === 'login' ? 'Inicia sesión para continuar.' : 'Crea tu cuenta en unos segundos.' }}</p>
     </header>
 
     <form [formGroup]="form" (ngSubmit)="submit()" novalidate>
@@ -42,7 +42,10 @@
       </mat-form-field>
 
       @if (mode() === 'login') {
-        <a class="forgot-link" routerLink="/forgot-password">¿Has olvidado tu contraseña?</a>
+        <div class="login-options">
+          <mat-checkbox formControlName="remember">Mantener la sesión iniciada</mat-checkbox>
+          <a class="forgot-link" routerLink="/forgot-password">¿Has olvidado tu contraseña?</a>
+        </div>
       }
 
       @if (errorMessage(); as message) {

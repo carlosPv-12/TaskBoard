@@ -3,67 +3,77 @@
   display: block;
 }
 
+// Pantalla de acceso: una tarjeta centrada sobre el fondo gris, como el inicio de sesión de una app de Apple
 .auth-page {
-  min-height: calc(100vh - 48px);
+  min-height: calc(100vh - 72px);
+  min-height: calc(100dvh - 72px);
   display: grid;
   place-items: center;
-  padding: 16px;
+  padding: 24px 16px;
 }
 
 .auth-card {
+  --mat-card-outlined-container-color: var(--tb-panel);
+  --mat-card-outlined-outline-color: transparent;
+  --mat-card-outlined-container-shape: 22px;
+
+  box-sizing: border-box;
   width: 100%;
-  max-width: 420px;
-  padding: 32px 28px 20px;
-  border-radius: 20px;
+  max-width: 400px;
+  padding: 36px 28px 20px;
 }
 
 .auth-header {
   text-align: center;
-  margin-bottom: 24px;
+  margin-bottom: 28px;
 
+  // Icono de la app
   .logo {
-    width: 56px;
-    height: 56px;
-    margin: 0 auto 12px;
-    border-radius: 16px;
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 15px;
     display: grid;
     place-items: center;
-    background: var(--mat-sys-primary-container);
-    color: var(--mat-sys-on-primary-container);
+    background: var(--tb-accent);
+    color: var(--tb-on-accent);
+    box-shadow: 0 6px 20px var(--tb-accent-soft);
 
     &.warn {
-      background: var(--mat-sys-error-container);
-      color: var(--mat-sys-on-error-container);
+      background: var(--mat-sys-error);
+      color: var(--mat-sys-on-error);
+      box-shadow: none;
     }
 
     mat-icon {
-      font-size: 30px;
-      width: 30px;
-      height: 30px;
+      font-size: 34px;
+      width: 34px;
+      height: 34px;
     }
   }
 
   h1 {
-    margin: 0 0 4px;
-    font: var(--mat-sys-headline-small);
+    margin: 0 0 6px;
+    font: 700 26px / 1.15 var(--tb-font-display);
+    letter-spacing: -0.02em;
   }
 
   p {
     margin: 0;
-    color: var(--mat-sys-on-surface-variant);
-    font: var(--mat-sys-body-medium);
+    color: var(--tb-ink-2);
+    font: 400 15px / 1.45 var(--tb-font);
   }
 }
 
 form {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 8px;
 }
 
 mat-form-field mat-icon[matPrefix] {
   margin: 0 8px 0 12px;
-  color: var(--mat-sys-on-surface-variant);
+  color: var(--tb-ink-2);
 }
 
 .error-banner {
@@ -71,17 +81,18 @@ mat-form-field mat-icon[matPrefix] {
   align-items: center;
   gap: 8px;
   padding: 10px 14px;
-  margin-bottom: 12px;
+  margin-bottom: 4px;
   border-radius: 12px;
   background: var(--mat-sys-error-container);
   color: var(--mat-sys-on-error-container);
-  font: var(--mat-sys-body-medium);
+  font: 400 14px / 1.4 var(--tb-font);
 }
 
 .submit {
-  height: 48px;
-  font-size: 16px;
   width: 100%;
+  height: 48px;
+  margin-top: 4px;
+  font-size: 16px;
 
   mat-spinner {
     margin: 0 auto;
@@ -91,16 +102,16 @@ mat-form-field mat-icon[matPrefix] {
 .hint {
   margin: 0 0 20px;
   text-align: center;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-small);
+  color: var(--tb-ink-2);
+  font: 400 13px / 1.45 var(--tb-font);
 }
 
 .auth-switch {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 4px;
-  margin-top: 16px;
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
+  gap: 2px;
+  margin-top: 18px;
+  color: var(--tb-ink-2);
+  font: 400 14px / 1 var(--tb-font);
 }

@@ -2,11 +2,12 @@ import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { MAT_DIALOG_DATA, MatDialogModule, MatDialogRef } from '@angular/material/dialog';
 import { MatButtonModule } from '@angular/material/button';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { normalizeText } from '../../../shared/utils/normalize-text';
-import { Exercise, MUSCLE_GROUPS, UpdateExerciseRequest } from '../models/exercise.models';
+import { Exercise, ExerciseType, MUSCLE_GROUPS, UpdateExerciseRequest } from '../models/exercise.models';
 
 export interface ExerciseDialogData {
   exercise: Exercise;
@@ -16,7 +17,15 @@ export interface ExerciseDialogData {
 
 @Component({
   selector: 'app-exercise-dialog',
-  imports: [ReactiveFormsModule, MatDialogModule, MatButtonModule, MatFormFieldModule, MatInputModule, MatSelectModule],
+  imports: [
+    ReactiveFormsModule,
+    MatDialogModule,
+    MatButtonModule,
+    MatButtonToggleModule,
+    MatFormFieldModule,
+    MatInputModule,
+    MatSelectModule
+  ],
   templateUrl: './exercise-dialog.component.html',
   styleUrl: './exercise-dialog.component.scss'
 })
@@ -34,7 +43,8 @@ export class ExerciseDialogComponent {
 
   readonly form = this.fb.nonNullable.group({
     name: [this.data.exercise.name, [Validators.required, Validators.minLength(2)]],
-    muscleGroup: [this.data.exercise.muscleGroup, Validators.required]
+    muscleGroup: [this.data.exercise.muscleGroup, Validators.required],
+    type: [this.data.exercise.type as ExerciseType]
   });
 
   submit(): void {
@@ -52,6 +62,10 @@ export class ExerciseDialogComponent {
     }
 
     // Cerrar el diálogo devolviendo el resultado al que lo abrió
-    this.dialogRef.close({ name, muscleGroup: this.form.controls.muscleGroup.value });
+    this.dialogRef.close({
+      name,
+      muscleGroup: this.form.controls.muscleGroup.value,
+      type: this.form.controls.type.value
+    });
   }
 }
