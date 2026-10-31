@@ -356,3 +356,75 @@
     flex: 1;
   }
 }
+
+// ── Móvil: la semana completa cabe sin desplazar en horizontal ──
+@media (max-width: 600px) {
+  .panel-header {
+    padding: 12px 8px 4px 16px;
+
+    .week-title {
+      font-size: 17px;
+    }
+  }
+
+  .grid-scroll {
+    padding: 0 6px 8px;
+  }
+
+  .grid {
+    min-width: 0;
+  }
+
+  .grid-row {
+    grid-template-columns: minmax(0, 1fr) repeat(7, 34px);
+  }
+
+  .cell-name {
+    gap: 0;
+    padding: 6px 0 6px 2px;
+  }
+
+  .drag-handle {
+    width: 20px;
+  }
+
+  .habit-name {
+    font-size: 14px;
+  }
+
+  .row-menu {
+    --mat-icon-button-state-layer-size: 32px;
+    width: 32px;
+    height: 32px;
+    padding: 4px;
+  }
+
+  .cell-day {
+    padding: 6px 0;
+
+    .dow {
+      font-size: 11px;
+    }
+
+    .dom {
+      font-size: 14px;
+    }
+  }
+
+  .head .cell-day.today .dom {
+    width: 26px;
+    height: 26px;
+  }
+
+  .check {
+    width: 28px;
+    height: 28px;
+    border-width: 2.5px;
+
+    mat-icon {
+      font-size: 16px;
+      width: 16px;
+      height: 16px;
+    }
+  }
+}

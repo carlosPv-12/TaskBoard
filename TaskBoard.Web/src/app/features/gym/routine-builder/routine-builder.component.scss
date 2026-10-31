@@ -7,9 +7,8 @@
   flex-direction: column;
   gap: 12px;
   padding: 16px;
-  border-radius: 16px;
-  border: 1px dashed var(--mat-sys-outline);
-  background: var(--mat-sys-surface);
+  border-radius: 14px;
+  background: var(--tb-fill);
 }
 
 .builder-title {
@@ -17,7 +16,7 @@
   align-items: center;
   gap: 8px;
   margin: 0;
-  font: var(--mat-sys-title-medium);
+  font: 600 17px / 1.3 var(--tb-font);
 
   mat-icon {
     color: var(--mat-sys-primary);
@@ -55,8 +54,7 @@ mat-icon[matPrefix] {
   gap: 10px;
   padding: 2px 4px 2px 8px;
   border-radius: 12px;
-  background: var(--mat-sys-surface-container);
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--tb-panel);
 
   &.cdk-drag-preview {
     box-sizing: border-box;
@@ -135,9 +133,9 @@ mat-icon[matPrefix] {
   padding: 14px;
   text-align: center;
   border-radius: 12px;
-  background: var(--mat-sys-surface-container);
-  color: var(--mat-sys-on-surface-variant);
-  font: var(--mat-sys-body-medium);
+  background: var(--tb-panel);
+  color: var(--tb-ink-2);
+  font: 400 14px / 1.4 var(--tb-font);
 
   &.error {
     background: var(--mat-sys-error-container);

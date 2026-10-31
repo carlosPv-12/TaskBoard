@@ -27,16 +27,15 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
-  padding: 14px 18px;
-  border-radius: 16px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--tb-panel);
 
   .label {
     display: flex;
     align-items: center;
     gap: 6px;
-    font: var(--mat-sys-label-large);
+    font: 500 13px / 1.3 var(--tb-font);
     color: var(--mat-sys-on-surface-variant);
 
     mat-icon {
@@ -47,7 +46,8 @@
   }
 
   .value {
-    font: var(--mat-sys-headline-medium);
+    font: 600 28px / 1.15 var(--tb-font-display);
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 
     small {
@@ -74,7 +74,7 @@
   }
 
   &.up .value {
-    color: #2e7d32;
+    color: light-dark(#248a3d, #30d158);
   }
 
   &.down .value {
@@ -86,9 +86,8 @@
 .chart-card,
 .history {
   padding: 20px;
-  border-radius: 20px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
+  border-radius: 18px;
+  background: var(--tb-panel);
 }
 
 .chart-card header {
@@ -100,7 +99,8 @@
 
   h2 {
     margin: 0;
-    font: var(--mat-sys-title-large);
+    font: 600 20px / 1.2 var(--tb-font-display);
+    letter-spacing: -0.015em;
   }
 
   span {
@@ -127,7 +127,8 @@
 .history {
   h2 {
     margin: 0 0 12px;
-    font: var(--mat-sys-title-large);
+    font: 600 20px / 1.2 var(--tb-font-display);
+    letter-spacing: -0.015em;
   }
 
   table {
@@ -168,7 +169,7 @@
   width: 18px;
   height: 18px;
   vertical-align: -3px;
-  color: #f9a825;
+  color: var(--tb-accent);
 }
 
 // ── Estados ─────────────────────────────────────────────
@@ -179,7 +180,7 @@
   gap: 8px;
   padding: 56px 16px;
   border-radius: 16px;
-  border: 1px dashed var(--mat-sys-outline-variant);
+  background: var(--tb-panel);
   color: var(--mat-sys-on-surface-variant);
   text-align: center;
 

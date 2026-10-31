@@ -20,9 +20,8 @@
 
 .eyebrow {
   display: block;
-  font: var(--mat-sys-label-large);
-  letter-spacing: 0.04em;
-  color: var(--mat-sys-primary);
+  font: 600 14px / 1.3 var(--tb-font);
+  color: var(--tb-accent);
 
   &::first-letter {
     text-transform: uppercase;
@@ -30,13 +29,15 @@
 }
 
 .hero h2 {
-  margin: 2px 0 0;
-  font: var(--mat-sys-headline-medium);
+  margin: 4px 0 0;
+  font: 700 30px / 1.15 var(--tb-font-display);
+  letter-spacing: -0.025em;
 }
 
+// Acción destructiva: texto rojo, borde neutro (como los botones "Eliminar" de iOS)
 .delete-btn {
   --mat-button-outlined-label-text-color: var(--mat-sys-error);
-  --mat-button-outlined-outline-color: var(--mat-sys-error);
+  --mat-button-outlined-outline-color: var(--tb-separator);
 }
 
 // ── Resumen ─────────────────────────────────────────────
@@ -50,18 +51,18 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 12px 18px;
+  padding: 14px 18px;
   border-radius: 16px;
-  background: var(--mat-sys-surface-container-low);
-  border: 1px solid var(--mat-sys-outline-variant);
+  background: var(--tb-panel);
 
   .value {
-    font: var(--mat-sys-headline-small);
+    font: 600 26px / 1.15 var(--tb-font-display);
+    letter-spacing: -0.02em;
     font-variant-numeric: tabular-nums;
 
     small {
-      font: var(--mat-sys-title-small);
-      color: var(--mat-sys-on-surface-variant);
+      font: 500 15px / 1 var(--tb-font);
+      color: var(--tb-ink-2);
     }
   }
 
@@ -113,7 +114,7 @@
   gap: 8px;
   padding: 48px 16px;
   border-radius: 16px;
-  border: 1px dashed var(--mat-sys-outline-variant);
+  background: var(--tb-panel);
   color: var(--mat-sys-on-surface-variant);
   text-align: center;
 
