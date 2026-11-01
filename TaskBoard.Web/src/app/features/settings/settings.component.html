@@ -1,90 +1,34 @@
 <section class="settings">
   <h1>Ajustes</h1>
 
-  @if (!notifications.supported) {
-    <div class="notice">
-      <mat-icon>smartphone</mat-icon>
-      <p>Los recordatorios funcionan en la <strong>app de Android</strong>: se programan en el móvil y llegan aunque la app esté cerrada. Configúralos desde allí.</p>
-    </div>
-  } @else if (notifications.permission() === 'denied') {
-    <div class="notice warn">
-      <mat-icon>notifications_off</mat-icon>
-      <p>Las notificaciones están bloqueadas. Actívalas en <strong>Ajustes de Android → Aplicaciones → TaskBoard → Notificaciones</strong>.</p>
-    </div>
-  } @else if (notifications.permission() !== 'granted') {
-    <div class="notice">
-      <mat-icon>notifications</mat-icon>
-      <p>Para recibir recordatorios, TaskBoard necesita permiso para mostrar notificaciones.</p>
-      <button mat-flat-button (click)="notifications.requestPermission()">Permitir</button>
-    </div>
-  }
-
-  <h2 class="group-title">Hábitos</h2>
-  <div class="group" [class.off]="!notifications.supported">
-    <label class="row">
+  <!-- Cuenta -->
+  <div class="group">
+    <div class="row account">
+      <span class="avatar" aria-hidden="true">{{ initial() }}</span>
       <span class="row-text">
-        <span class="row-title">Recordatorio diario</span>
-        <span class="row-hint">Solo si te queda algún hábito que ya no puede esperar para cumplir su objetivo semanal.</span>
+        <span class="account-email">{{ auth.email() }}</span>
+        <span class="row-hint">Cuenta de TaskBoard</span>
       </span>
-      <mat-slide-toggle
-        hideIcon
-        [disabled]="!notifications.supported"
-        [checked]="settings().habitsEnabled"
-        (change)="update({ habitsEnabled: $event.checked })"
-        aria-label="Recordatorio diario de hábitos" />
-    </label>
-    <label class="row">
-      <span class="row-title">Hora</span>
-      <input
-        type="time"
-        class="time"
-        [value]="settings().habitsTime"
-        [disabled]="!notifications.supported || !settings().habitsEnabled"
-        (change)="onTimeChange($event)" />
-    </label>
+    </div>
   </div>
 
-  <h2 class="group-title">Tareas</h2>
-  <div class="group" [class.off]="!notifications.supported">
-    <label class="row">
-      <span class="row-text">
-        <span class="row-title">Tareas olvidadas</span>
-        <span class="row-hint">A las {{ tasksTime }}, cuando una tarea pendiente cumple {{ staleDays }} días sin tiempo registrado (y cada {{ staleDays }} días más).</span>
-      </span>
-      <mat-slide-toggle
-        hideIcon
-        [disabled]="!notifications.supported"
-        [checked]="settings().tasksEnabled"
-        (change)="update({ tasksEnabled: $event.checked })"
-        aria-label="Avisos de tareas olvidadas" />
-    </label>
+  <div class="group">
+    <a class="row row-link" routerLink="notifications">
+      <span class="tile" style="--tile: #8e8e93"><mat-icon>notifications</mat-icon></span>
+      <span class="row-title grow">Notificaciones</span>
+      <span class="value">{{ notificationsSummary() }}</span>
+      <mat-icon class="chevron">chevron_right</mat-icon>
+    </a>
+    <a class="row row-link" routerLink="password">
+      <span class="tile" style="--tile: #8e8e93"><mat-icon>key</mat-icon></span>
+      <span class="row-title grow">Cambiar contraseña</span>
+      <mat-icon class="chevron">chevron_right</mat-icon>
+    </a>
   </div>
 
-  @if (notifications.supported && notifications.permission() === 'granted') {
-    <h2 class="group-title">Próximos avisos</h2>
-    <div class="group">
-      @for (item of notifications.upcoming(); track item.id) {
-        <div class="row upcoming">
-          <span class="when">
-            <span class="day">{{ item.at | date: 'EEE d' }}</span>
-            <span class="hour">{{ item.at | date: 'HH:mm' }}</span>
-          </span>
-          <span class="row-text">
-            <span class="row-title">{{ item.title }}</span>
-            <span class="row-hint">{{ item.body }}</span>
-          </span>
-        </div>
-      } @empty {
-        <div class="row empty">Nada programado para los próximos 7 días. ¡Vas al día!</div>
-      }
-    </div>
+  <div class="group">
+    <button type="button" class="row row-link logout" (click)="logout()">Cerrar sesión</button>
+  </div>
 
-    @if (notifications.lastError(); as error) {
-      <p class="error">{{ error }}</p>
-    }
-
-    <button mat-stroked-button class="test-btn" (click)="test()">
-      <mat-icon>send</mat-icon> Enviar notificación de prueba
-    </button>
-  }
+  <p class="version">TaskBoard</p>
 </section>

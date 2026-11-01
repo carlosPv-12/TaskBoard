@@ -1,45 +1,55 @@
-import { Component, inject } from '@angular/core';
-import { DatePipe } from '@angular/common';
-import { MatButtonModule } from '@angular/material/button';
+import { Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
+import { filter } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
-import { MatSnackBar } from '@angular/material/snack-bar';
+import { AuthService } from '../../core/auth/auth.service';
 import { NotificationService } from '../../core/notifications/notification.service';
 import { NotificationSettingsService } from '../../core/notifications/notification-settings.service';
-import { STALE_TASK_DAYS, TASKS_TIME } from '../../core/notifications/notification-planner';
-import { NotificationSettings } from '../../core/notifications/reminder.models';
+import {
+  ConfirmDialogComponent,
+  ConfirmDialogData
+} from '../../shared/components/confirm-dialog/confirm-dialog.component';
 
-/** Ajustes del dispositivo: recordatorios de hábitos y de tareas olvidadas. */
+/** Portada de Ajustes: cuenta, accesos a cada apartado y cerrar sesión. */
 @Component({
   selector: 'app-settings',
-  imports: [DatePipe, MatButtonModule, MatIconModule, MatSlideToggleModule],
+  imports: [RouterLink, MatIconModule],
   templateUrl: './settings.component.html',
-  styleUrl: './settings.component.scss'
+  styleUrls: ['./settings-shared.scss', './settings.component.scss']
 })
 export class SettingsComponent {
-  protected readonly notifications = inject(NotificationService);
-  private readonly settingsService = inject(NotificationSettingsService);
-  private readonly snackBar = inject(MatSnackBar);
+  protected readonly auth = inject(AuthService);
+  private readonly notifications = inject(NotificationService);
+  private readonly notificationSettings = inject(NotificationSettingsService);
+  private readonly dialog = inject(MatDialog);
 
-  protected readonly settings = this.settingsService.settings;
-  protected readonly staleDays = STALE_TASK_DAYS;
-  protected readonly tasksTime = TASKS_TIME;
+  /** Inicial del email para el avatar. */
+  protected readonly initial = computed(() => (this.auth.email() ?? '?').charAt(0).toUpperCase());
 
-  update(changes: Partial<NotificationSettings>): void {
-    this.settingsService.update(changes);
-  }
+  /** Resumen a la derecha de la fila, como "Activadas" en Ajustes de iOS. */
+  protected readonly notificationsSummary = computed(() => {
+    if (!this.notifications.supported) return 'Solo en Android';
+    if (this.notifications.permission() === 'denied') return 'Bloqueadas';
 
-  onTimeChange(event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    if (/^\d{2}:\d{2}$/.test(value)) {
-      this.update({ habitsTime: value });
-    }
-  }
+    const { habitsEnabled, habitsTime, tasksEnabled } = this.notificationSettings.settings();
+    if (habitsEnabled) return habitsTime;
+    return tasksEnabled ? 'Solo tareas' : 'Desactivadas';
+  });
 
-  async test(): Promise<void> {
-    await this.notifications.sendTest();
-    if (this.notifications.permission() === 'granted') {
-      this.snackBar.open('Llegará en 5 segundos. Puedes salir de la app para verla.', 'Vale', { duration: 4000 });
-    }
+  logout(): void {
+    this.dialog
+      .open<ConfirmDialogComponent, ConfirmDialogData, boolean>(ConfirmDialogComponent, {
+        width: '380px',
+        data: {
+          title: 'Cerrar sesión',
+          message: 'Tendrás que volver a introducir tu email y contraseña. Los recordatorios de este dispositivo se desactivarán.',
+          confirmText: 'Cerrar sesión',
+          destructive: true
+        }
+      })
+      .afterClosed()
+      .pipe(filter(confirmed => confirmed === true))
+      .subscribe(() => this.auth.logout());
   }
 }

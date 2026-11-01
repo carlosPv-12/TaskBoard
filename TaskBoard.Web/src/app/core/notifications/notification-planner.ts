@@ -19,7 +19,6 @@ export const TASKS_TIME = '10:00';
 /** Rangos de IDs: así se pueden cancelar los nuestros sin tocar otros. */
 export const HABIT_ID_BASE = 100;
 export const TASK_ID_BASE = 200;
-export const TEST_ID = 999;
 
 export function planNotifications(
   data: Reminders,

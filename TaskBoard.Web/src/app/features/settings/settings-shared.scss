@@ -1,0 +1,192 @@
+// Estilos comunes de Ajustes: listas agrupadas como en la app Ajustes de iOS.
+// Grupos redondeados, filas separadas por una línea fina, títulos de grupo en versalitas.
+:host {
+  display: block;
+}
+
+.settings {
+  max-width: 640px;
+  margin: 0 auto;
+  padding-bottom: 16px;
+}
+
+// "‹ Ajustes": volver desde una subpantalla
+.back {
+  display: inline-flex;
+  align-items: center;
+  margin: 12px 0 0 -8px;
+  padding: 4px 8px 4px 0;
+  border-radius: 8px;
+  color: var(--tb-accent);
+  font: 400 17px / 1.2 var(--tb-font);
+  text-decoration: none;
+
+  mat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tb-accent);
+  }
+}
+
+h1 {
+  margin: 16px 0 20px;
+  font: 700 34px / 1.12 var(--tb-font-display);
+  letter-spacing: -0.025em;
+  color: var(--tb-ink);
+}
+
+.back + h1 {
+  margin-top: 4px;
+}
+
+.group-title {
+  margin: 24px 16px 8px;
+  font: 400 13px / 1.3 var(--tb-font);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--tb-ink-2);
+}
+
+.group {
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--tb-panel);
+
+  & + .group {
+    margin-top: 24px;
+  }
+
+  &.off {
+    opacity: 0.55;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 52px;
+  padding: 10px 16px;
+  box-sizing: border-box;
+
+  & + .row {
+    border-top: 0.5px solid var(--tb-separator);
+  }
+}
+
+label.row {
+  cursor: pointer;
+}
+
+// Fila pulsable (enlace o botón) con aspecto de fila normal
+.row-link {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
+
+  &:hover:not(:disabled) {
+    background: var(--tb-hover);
+  }
+
+  &:active:not(:disabled) {
+    background: var(--tb-fill);
+  }
+
+  &:disabled {
+    cursor: default;
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--tb-accent);
+    outline-offset: -2px;
+  }
+}
+
+.row-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.row-title {
+  font: 400 16px / 1.3 var(--tb-font);
+  color: var(--tb-ink);
+}
+
+.row-hint {
+  font: 400 13px / 1.35 var(--tb-font);
+  color: var(--tb-ink-2);
+}
+
+// Pie de grupo (texto pequeño bajo la lista)
+.group-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 12px 16px 0;
+  font: 400 13px / 1.35 var(--tb-font);
+  color: var(--tb-ink-2);
+
+  mat-icon {
+    flex: none;
+    width: 16px;
+    height: 16px;
+    font-size: 16px;
+  }
+}
+
+.notice {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--tb-accent-soft);
+  color: var(--tb-ink);
+
+  mat-icon {
+    flex: none;
+    color: var(--tb-accent);
+  }
+
+  p {
+    flex: 1;
+    min-width: 200px;
+    margin: 0;
+    font: 400 14px / 1.4 var(--tb-font);
+  }
+
+  &.warn {
+    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
+
+    mat-icon {
+      color: var(--mat-sys-error);
+    }
+  }
+}
+
+.error {
+  color: var(--mat-sys-error);
+}
+
+@media (max-width: 700px) {
+  h1 {
+    margin: 8px 0 12px;
+    font-size: 30px;
+  }
+}

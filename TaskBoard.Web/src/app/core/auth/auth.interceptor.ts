@@ -8,7 +8,9 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const auth = inject(AuthService);
 
   const isApiRequest = req.url.startsWith(environment.apiUrl);
-  const isAuthEndpoint = req.url.startsWith(`${environment.apiUrl}/Auth`);
+  // Los endpoints de /Auth van sin token (login, refresh…), salvo change-password, que exige sesión
+  const isAuthEndpoint =
+    req.url.startsWith(`${environment.apiUrl}/Auth`) && !req.url.endsWith('/change-password');
 
   // Las peticiones son inmutables: se clona con la cabecera añadida
   const withToken = (token: string | null) =>

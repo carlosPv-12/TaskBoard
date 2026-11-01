@@ -1,0 +1,84 @@
+<section class="settings">
+  <a class="back" routerLink="/settings"><mat-icon>chevron_left</mat-icon>Ajustes</a>
+  <h1>Notificaciones</h1>
+
+  @if (!notifications.supported) {
+    <div class="notice">
+      <mat-icon>smartphone</mat-icon>
+      <p>Los recordatorios funcionan en la <strong>app de Android</strong>: se programan en el móvil y llegan aunque la app esté cerrada. Configúralos desde allí.</p>
+    </div>
+  } @else if (notifications.permission() === 'denied') {
+    <div class="notice warn">
+      <mat-icon>notifications_off</mat-icon>
+      <p>Las notificaciones están bloqueadas. Actívalas en <strong>Ajustes de Android → Aplicaciones → TaskBoard → Notificaciones</strong>.</p>
+    </div>
+  } @else if (notifications.permission() !== 'granted') {
+    <div class="notice">
+      <mat-icon>notifications</mat-icon>
+      <p>Para recibir recordatorios, TaskBoard necesita permiso para mostrar notificaciones.</p>
+      <button mat-flat-button (click)="notifications.requestPermission()">Permitir</button>
+    </div>
+  }
+
+  <h2 class="group-title">Hábitos</h2>
+  <div class="group" [class.off]="!notifications.supported">
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Recordatorio diario</span>
+        <span class="row-hint">Solo si te queda algún hábito que ya no puede esperar para cumplir su objetivo semanal.</span>
+      </span>
+      <mat-slide-toggle
+        hideIcon
+        [disabled]="!notifications.supported"
+        [checked]="settings().habitsEnabled"
+        (change)="update({ habitsEnabled: $event.checked }); timeOpen.set(false)"
+        aria-label="Recordatorio diario de hábitos" />
+    </label>
+
+    <button
+      type="button"
+      class="row row-link"
+      [disabled]="!notifications.supported || !settings().habitsEnabled"
+      [attr.aria-expanded]="timeOpen()"
+      (click)="toggleTime()">
+      <span class="row-title">Hora</span>
+      <span class="time-pill" [class.open]="timeOpen()">{{ settings().habitsTime }}</span>
+    </button>
+
+    @if (timeOpen()) {
+      <div class="row time-row">
+        <app-time-stepper [value]="settings().habitsTime" (valueChange)="setHabitsTime($event)" />
+      </div>
+    }
+  </div>
+
+  <h2 class="group-title">Tareas</h2>
+  <div class="group" [class.off]="!notifications.supported">
+    <label class="row">
+      <span class="row-text">
+        <span class="row-title">Tareas olvidadas</span>
+        <span class="row-hint">A las {{ tasksTime }}, cuando una tarea pendiente cumple {{ staleDays }} días sin tiempo registrado (y cada {{ staleDays }} días más).</span>
+      </span>
+      <mat-slide-toggle
+        hideIcon
+        [disabled]="!notifications.supported"
+        [checked]="settings().tasksEnabled"
+        (change)="update({ tasksEnabled: $event.checked })"
+        aria-label="Avisos de tareas olvidadas" />
+    </label>
+  </div>
+
+  @if (notifications.supported && notifications.permission() === 'granted') {
+    <p class="group-footer">
+      @if (notifications.lastError(); as error) {
+        <span class="error">{{ error }}</span>
+      } @else if (nextNotification(); as next) {
+        <mat-icon>schedule</mat-icon>
+        Próximo aviso: {{ next.at | date: 'EEEE d' }} a las {{ next.at | date: 'HH:mm' }}
+      } @else if (settings().habitsEnabled || settings().tasksEnabled) {
+        <mat-icon>check_circle</mat-icon>
+        Nada pendiente en los próximos 7 días.
+      }
+    </p>
+  }
+</section>

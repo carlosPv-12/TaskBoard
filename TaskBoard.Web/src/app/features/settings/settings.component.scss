@@ -1,170 +1,77 @@
-// Lista agrupada al estilo de Ajustes de iOS: grupos redondeados con filas separadas por una línea fina
-:host {
-  display: block;
+// Portada de Ajustes; lo común está en settings-shared.scss
+.account {
+  gap: 14px;
+  min-height: 76px;
 }
 
-.settings {
-  max-width: 640px;
-  margin: 0 auto;
-  padding-bottom: 16px;
+.avatar {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #0a84ff, #5e5ce6);
+  color: #fff;
+  font: 600 22px / 1 var(--tb-font-display);
 }
 
-h1 {
-  margin: 16px 0 20px;
-  font: 700 34px / 1.12 var(--tb-font-display);
-  letter-spacing: -0.025em;
-  color: var(--tb-ink);
-}
-
-.group-title {
-  margin: 24px 16px 8px;
-  font: 400 13px / 1.3 var(--tb-font);
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--tb-ink-2);
-}
-
-.group {
+.account-email {
   overflow: hidden;
-  border-radius: 14px;
-  background: var(--tb-panel);
+  font: 600 17px / 1.3 var(--tb-font);
+  color: var(--tb-ink);
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
 
-  &.off {
-    opacity: 0.55;
+// Icono en un cuadradito de color, como en Ajustes de iOS
+.tile {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--tile);
+  color: #fff;
+
+  mat-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 19px;
   }
 }
 
-.row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 52px;
-  padding: 10px 16px;
-  box-sizing: border-box;
-
-  & + .row {
-    border-top: 0.5px solid var(--tb-separator);
-  }
-}
-
-label.row {
-  cursor: pointer;
-}
-
-.row-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.grow {
+  flex: 1;
   min-width: 0;
 }
 
-.row-title {
+.value {
   font: 400 16px / 1.3 var(--tb-font);
-  color: var(--tb-ink);
-}
-
-.row-hint {
-  font: 400 13px / 1.35 var(--tb-font);
-  color: var(--tb-ink-2);
-}
-
-.time {
-  padding: 6px 10px;
-  border: 0;
-  border-radius: 8px;
-  background: var(--tb-fill);
-  color: var(--tb-ink);
-  color-scheme: light dark;
-  font: 500 16px / 1.2 var(--tb-font);
   font-variant-numeric: tabular-nums;
-
-  &:focus-visible {
-    outline: 2px solid var(--tb-accent);
-    outline-offset: 1px;
-  }
-
-  &:disabled {
-    opacity: 0.5;
-  }
-}
-
-.upcoming {
-  justify-content: flex-start;
-  align-items: flex-start;
-}
-
-.when {
-  display: flex;
-  flex-direction: column;
-  flex: none;
-  width: 56px;
-  padding-top: 2px;
-
-  .day {
-    font: 500 13px / 1.2 var(--tb-font);
-    color: var(--tb-accent);
-    text-transform: capitalize;
-  }
-
-  .hour {
-    font: 400 13px / 1.3 var(--tb-font);
-    font-variant-numeric: tabular-nums;
-    color: var(--tb-ink-2);
-  }
-}
-
-.empty {
-  justify-content: center;
   color: var(--tb-ink-2);
-  font: 400 15px / 1.3 var(--tb-font);
 }
 
-.notice {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
+.chevron {
+  margin: 0 -6px 0 -8px;
+  color: var(--tb-ink-2);
+  opacity: 0.6;
+}
+
+.row-link.row {
   gap: 12px;
-  padding: 14px 16px;
-  border-radius: 14px;
-  background: var(--tb-accent-soft);
-  color: var(--tb-ink);
-
-  mat-icon {
-    flex: none;
-    color: var(--tb-accent);
-  }
-
-  p {
-    flex: 1;
-    min-width: 200px;
-    margin: 0;
-    font: 400 14px / 1.4 var(--tb-font);
-  }
-
-  &.warn {
-    background: color-mix(in srgb, var(--mat-sys-error) 12%, transparent);
-
-    mat-icon {
-      color: var(--mat-sys-error);
-    }
-  }
 }
 
-.error {
-  margin: 8px 16px 0;
-  font: 400 13px / 1.3 var(--tb-font);
+.logout {
+  justify-content: center;
   color: var(--mat-sys-error);
+  font: 400 16px / 1.3 var(--tb-font);
 }
 
-.test-btn {
-  display: flex;
-  margin: 24px auto 0;
-}
-
-@media (max-width: 700px) {
-  h1 {
-    margin: 8px 0 12px;
-    font-size: 30px;
-  }
+.version {
+  margin: 24px 0 0;
+  text-align: center;
+  font: 400 13px / 1.3 var(--tb-font);
+  color: var(--tb-ink-2);
 }

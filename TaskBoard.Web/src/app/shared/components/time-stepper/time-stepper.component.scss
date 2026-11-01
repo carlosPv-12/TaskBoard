@@ -1,0 +1,71 @@
+// Dos columnas de dígitos grandes con flechas, como el selector de hora de un reloj digital
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px 0 12px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation; // sin zoom por doble toque al pulsar rápido
+}
+
+.column {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.arrow {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 36px;
+  padding: 0;
+  border: 0;
+  border-radius: 10px;
+  background: transparent;
+  color: var(--tb-accent);
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  transition: background-color 0.15s ease;
+
+  &:hover {
+    background: var(--tb-hover);
+  }
+
+  &:active {
+    background: var(--tb-accent-soft);
+  }
+
+  mat-icon {
+    width: 28px;
+    height: 28px;
+    font-size: 28px;
+  }
+}
+
+.digits {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 64px;
+  border-radius: 14px;
+  background: var(--tb-fill);
+  color: var(--tb-ink);
+  font: 600 40px / 1 var(--tb-font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  outline: none;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--tb-accent);
+  }
+}
+
+.colon {
+  padding-bottom: 4px;
+  color: var(--tb-ink-2);
+  font: 600 36px / 1 var(--tb-font-display);
+}

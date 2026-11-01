@@ -9,7 +9,7 @@ import { environment } from '../../../environments/environment';
 import { todayIso } from '../../shared/utils/local-date';
 import { AuthService } from '../auth/auth.service';
 import { NotificationSettingsService } from './notification-settings.service';
-import { HABIT_ID_BASE, TASK_ID_BASE, TEST_ID, planNotifications } from './notification-planner';
+import { HABIT_ID_BASE, TASK_ID_BASE, planNotifications } from './notification-planner';
 import { PlannedNotification, Reminders } from './reminder.models';
 
 const CHANNEL_ID = 'reminders';
@@ -73,24 +73,6 @@ export class NotificationService {
     const { display } = await LocalNotifications.requestPermissions();
     this.permission.set(display);
     if (display === 'granted') this.refreshSoon(0);
-  }
-
-  /** Notificación de prueba a los 5 segundos (puedes cerrar la app para comprobarlo). */
-  async sendTest(): Promise<void> {
-    if (!this.supported) return;
-    if (!(await this.ensurePermission())) return;
-
-    await LocalNotifications.schedule({
-      notifications: [
-        this.toNative({
-          id: TEST_ID,
-          at: new Date(Date.now() + 5000),
-          title: 'TaskBoard',
-          body: 'Las notificaciones funcionan correctamente.',
-          route: '/settings'
-        })
-      ]
-    });
   }
 
   // ── Interno ─────────────────────────────────────────────
@@ -173,7 +155,7 @@ export class NotificationService {
     return display === 'granted';
   }
 
-  /** Cancela solo las nuestras (rangos de hábitos y tareas), no la de prueba. */
+  /** Cancela solo las nuestras (rangos de hábitos y tareas). */
   private async cancelOurs(): Promise<void> {
     const { notifications } = await LocalNotifications.getPending();
     const ours = notifications.filter(n => n.id >= HABIT_ID_BASE && n.id < TASK_ID_BASE + 100);

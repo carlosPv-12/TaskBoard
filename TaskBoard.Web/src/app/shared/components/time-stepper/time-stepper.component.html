@@ -1,0 +1,45 @@
+@for (column of [{ part: 'hours', label: 'Horas', value: hours() }, { part: 'minutes', label: 'Minutos', value: minutes() }]; track column.part; let first = $first) {
+  @if (!first) {
+    <span class="colon" aria-hidden="true">:</span>
+  }
+
+  <div class="column">
+    <button
+      type="button"
+      class="arrow"
+      tabindex="-1"
+      [attr.aria-label]="'Subir ' + column.label.toLowerCase()"
+      (pointerdown)="startRepeat($event, $any(column.part), 1)"
+      (pointerup)="stopRepeat()"
+      (pointerleave)="stopRepeat()"
+      (pointercancel)="stopRepeat()"
+      (click)="onClick($event, $any(column.part), 1)">
+      <mat-icon>keyboard_arrow_up</mat-icon>
+    </button>
+
+    <span
+      class="digits"
+      role="spinbutton"
+      tabindex="0"
+      [attr.aria-label]="column.label"
+      [attr.aria-valuenow]="column.value"
+      [attr.aria-valuemin]="0"
+      [attr.aria-valuemax]="column.part === 'hours' ? 23 : 59"
+      (keydown)="onKey($event, $any(column.part))">
+      {{ pad(column.value) }}
+    </span>
+
+    <button
+      type="button"
+      class="arrow"
+      tabindex="-1"
+      [attr.aria-label]="'Bajar ' + column.label.toLowerCase()"
+      (pointerdown)="startRepeat($event, $any(column.part), -1)"
+      (pointerup)="stopRepeat()"
+      (pointerleave)="stopRepeat()"
+      (pointercancel)="stopRepeat()"
+      (click)="onClick($event, $any(column.part), -1)">
+      <mat-icon>keyboard_arrow_down</mat-icon>
+    </button>
+  </div>
+}

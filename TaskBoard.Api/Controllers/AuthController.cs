@@ -1,9 +1,11 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using TaskBoard.Api.Data;
 using TaskBoard.Api.Dtos;
+using TaskBoard.Api.Extensions;
 using TaskBoard.Api.Models;
 using TaskBoard.Api.Services;
 
@@ -248,6 +250,49 @@ public class AuthController : ControllerBase
         await _context.SaveChangesAsync();
 
         return NoContent();
+    }
+
+    // POST /api/Auth/change-password  (con sesión iniciada)
+    // Comprueba la contraseña actual, guarda la nueva y cierra la sesión en TODOS los dispositivos,
+    // pero devuelve tokens nuevos para que quien la cambia siga dentro sin volver a entrar.
+    // Hereda el rate limit "auth" (5/min): frena probar contraseñas actuales a ciegas.
+    [HttpPost("change-password")]
+    [Authorize]
+    public async Task<ActionResult<AuthResponseDto>> ChangePassword(ChangePasswordDto dto)
+    {
+        var userId = User.GetUserId();
+        var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId);
+
+        if (user is null)
+        {
+            return InvalidSession();
+        }
+
+        var check = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, dto.CurrentPassword);
+        if (check == PasswordVerificationResult.Failed)
+        {
+            return BadRequest(new { error = "La contraseña actual no es correcta." });
+        }
+
+        if (dto.CurrentPassword == dto.NewPassword)
+        {
+            return BadRequest(new { error = "La nueva contraseña debe ser distinta de la actual." });
+        }
+
+        user.PasswordHash = _passwordHasher.HashPassword(user, dto.NewPassword);
+
+        var now = DateTime.UtcNow;
+        var sessions = await _context.RefreshTokens
+            .Where(r => r.UserId == user.Id && r.RevokedAt == null)
+            .ToListAsync();
+
+        foreach (var session in sessions)
+        {
+            session.RevokedAt = now;
+        }
+
+        // IssueTokensAsync hace el SaveChanges: contraseña, sesiones revocadas y sesión nueva, todo o nada
+        return Ok(await IssueTokensAsync(user));
     }
 
     /// <summary>

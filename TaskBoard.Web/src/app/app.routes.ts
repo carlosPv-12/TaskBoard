@@ -37,7 +37,24 @@ export const routes: Routes = [
       },
       {
         path: 'settings',
-        loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+        children: [
+          {
+            path: '',
+            loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+          },
+          {
+            path: 'notifications',
+            loadComponent: () =>
+              import('./features/settings/notifications/notification-settings.component').then(
+                m => m.NotificationSettingsComponent
+              )
+          },
+          {
+            path: 'password',
+            loadComponent: () =>
+              import('./features/settings/password/change-password.component').then(m => m.ChangePasswordComponent)
+          }
+        ]
       },
       { path: '', pathMatch: 'full', redirectTo: 'tasks' }
     ]

@@ -66,6 +66,19 @@ export class AuthService {
   }
 
   /**
+   * Cambia la contraseña con la sesión iniciada. El servidor cierra la sesión en los demás
+   * dispositivos y devuelve tokens nuevos para este, que se guardan donde ya estaba la sesión.
+   */
+  changePassword(currentPassword: string, newPassword: string): Observable<void> {
+    return this.http
+      .post<AuthResponse>(`${this.baseUrl}/change-password`, { currentPassword, newPassword })
+      .pipe(
+        tap(response => this.saveSession(response)),
+        map(() => undefined)
+      );
+  }
+
+  /**
    * Cambia el refresh token por un access token nuevo (y un refresh nuevo: rotación).
    * Devuelve el access token nuevo. Compartido: una sola petición aunque la pidan varios a la vez.
    */
