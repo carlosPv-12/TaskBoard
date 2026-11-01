@@ -1,2 +1,8 @@
 /build/*
 !/build/.npmkeep
+
+# APK/AAB firmados que genera Android Studio: no van al repositorio (es público)
+/release/
+/debug/
+*.apk
+*.aab
