@@ -6,6 +6,7 @@ import { filter, map } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { AuthService } from './core/auth/auth.service';
+import { NativeService } from './core/native/native.service';
 
 type Section = 'tasks' | 'habits' | 'gym';
 
@@ -25,6 +26,7 @@ interface NavItem {
 })
 export class App {
   protected readonly auth = inject(AuthService);
+  protected readonly native = inject(NativeService);
   private readonly router = inject(Router);
   private readonly document = inject(DOCUMENT);
 
@@ -52,6 +54,9 @@ export class App {
   constructor() {
     // Iconos redondeados (Material Symbols Rounded), más cercanos a SF Symbols
     inject(MatIconRegistry).setDefaultFontSetClass('material-symbols-rounded');
+
+    // Botón atrás, teclado, barra de estado y splash (solo dentro del APK)
+    this.native.init();
 
     // El acento de color depende de la sección: se marca en <html> para que llegue
     // también a menús, diálogos y avisos, que se pintan fuera del <main>.

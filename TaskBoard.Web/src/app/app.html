@@ -7,7 +7,7 @@
       </a>
 
       <!-- En escritorio va en la barra superior; en el móvil, el CSS la convierte en la barra inferior -->
-      <nav class="nav" aria-label="Secciones">
+      <nav class="nav" aria-label="Secciones" [class.keyboard-open]="native.keyboardOpen()">
         @for (item of navItems; track item.path) {
           <a
             class="nav-link"

@@ -9,8 +9,8 @@
 // para que el cambio llegue a todas las pantallas sin tocarlas una a una.
 // ═══════════════════════════════════════════════════════════════════════
 
-$font-text: ('SF Pro Text', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif);
-$font-display: ('SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif);
+$font-text: ('SF Pro Text', -apple-system, BlinkMacSystemFont, 'Inter Variable', 'Inter', 'Segoe UI', Roboto, sans-serif);
+$font-display: ('SF Pro Display', -apple-system, BlinkMacSystemFont, 'Inter Variable', 'Inter', 'Segoe UI', Roboto, sans-serif);
 
 html {
   // "light dark" + theme-type color-scheme: Material genera los dos modos con light-dark()
