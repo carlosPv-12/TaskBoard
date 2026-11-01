@@ -1,0 +1,28 @@
+<h2 mat-dialog-title>Editar hábito</h2>
+
+<form [formGroup]="form" (ngSubmit)="submit()">
+  <mat-dialog-content class="content">
+    <mat-form-field appearance="outline">
+      <mat-label>Nombre</mat-label>
+      <input matInput formControlName="name" maxlength="100" cdkFocusInitial />
+      @if (form.controls.name.hasError('required')) {
+        <mat-error>El nombre es obligatorio</mat-error>
+      } @else if (form.controls.name.hasError('minlength')) {
+        <mat-error>Mínimo 3 caracteres</mat-error>
+      }
+    </mat-form-field>
+
+    <div class="goal">
+      <div class="goal-text">
+        <span class="goal-label">Objetivo</span>
+        <span class="goal-hint">{{ hint() }}</span>
+      </div>
+      <app-times-per-week-picker formControlName="timesPerWeek" />
+    </div>
+  </mat-dialog-content>
+
+  <mat-dialog-actions align="end">
+    <button mat-button type="button" mat-dialog-close>Cancelar</button>
+    <button mat-flat-button type="submit">Guardar cambios</button>
+  </mat-dialog-actions>
+</form>

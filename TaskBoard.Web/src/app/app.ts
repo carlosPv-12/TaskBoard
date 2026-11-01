@@ -7,6 +7,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule, MatIconRegistry } from '@angular/material/icon';
 import { AuthService } from './core/auth/auth.service';
 import { NativeService } from './core/native/native.service';
+import { NotificationService } from './core/notifications/notification.service';
 
 type Section = 'tasks' | 'habits' | 'gym';
 
@@ -57,6 +58,9 @@ export class App {
 
     // Botón atrás, teclado, barra de estado y splash (solo dentro del APK)
     this.native.init();
+
+    // Recordatorios locales: se programan al iniciar sesión y se recalculan con cada cambio
+    inject(NotificationService);
 
     // El acento de color depende de la sección: se marca en <html> para que llegue
     // también a menús, diálogos y avisos, que se pintan fuera del <main>.

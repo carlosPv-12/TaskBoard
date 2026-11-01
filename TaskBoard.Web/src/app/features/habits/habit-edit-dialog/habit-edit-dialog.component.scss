@@ -1,0 +1,39 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: min(380px, 80vw);
+  padding-top: 8px !important;
+}
+
+// Fila tipo Ajustes de iOS: texto a la izquierda, control a la derecha
+.goal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.goal-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.goal-label {
+  font: 500 15px / 1.3 var(--tb-font);
+  color: var(--tb-ink);
+}
+
+.goal-hint {
+  font: var(--mat-sys-body-small);
+  color: var(--tb-ink-2);
+}
+
+@media (max-width: 420px) {
+  .goal {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}

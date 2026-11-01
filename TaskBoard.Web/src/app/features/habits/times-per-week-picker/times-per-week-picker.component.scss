@@ -1,0 +1,56 @@
+// Stepper compacto en una cápsula gris, como los de Ajustes en iOS
+:host {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2px;
+  height: 48px;
+  padding: 0 4px;
+  border-radius: 12px;
+  background: var(--tb-fill);
+  user-select: none;
+}
+
+:host(.disabled) {
+  opacity: 0.5;
+}
+
+.step {
+  --mat-icon-button-state-layer-size: 40px;
+  width: 40px;
+  height: 40px;
+  padding: 8px;
+  color: var(--tb-accent);
+
+  &:disabled {
+    color: var(--tb-ink-2);
+    opacity: 0.4;
+  }
+}
+
+.value {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 76px;
+  padding: 2px 4px;
+  border-radius: 8px;
+  outline: none;
+  line-height: 1.15;
+
+  &:focus-visible {
+    box-shadow: 0 0 0 2px var(--tb-accent);
+  }
+
+  strong {
+    font: 600 15px / 1.2 var(--tb-font);
+    font-variant-numeric: tabular-nums;
+    color: var(--tb-ink);
+  }
+
+  small {
+    font-size: 11px;
+    color: var(--tb-ink-2);
+  }
+}

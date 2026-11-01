@@ -2,7 +2,14 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { CreateHabitRequest, Habit, HabitLog, HabitStats, ToggleHabitLogRequest } from './habit.models';
+import {
+  CreateHabitRequest,
+  Habit,
+  HabitLog,
+  HabitStats,
+  ToggleHabitLogRequest,
+  UpdateHabitRequest
+} from './habit.models';
 
 @Injectable({ providedIn: 'root' })
 export class HabitService {
@@ -15,6 +22,11 @@ export class HabitService {
 
   create(request: CreateHabitRequest): Observable<Habit> {
     return this.http.post<Habit>(this.baseUrl, request);
+  }
+
+  /** Renombrar o cambiar el objetivo semanal; el historial se conserva. */
+  update(id: number, request: UpdateHabitRequest): Observable<Habit> {
+    return this.http.put<Habit>(`${this.baseUrl}/${id}`, request);
   }
 
   delete(id: number): Observable<void> {

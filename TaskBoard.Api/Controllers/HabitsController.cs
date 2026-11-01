@@ -5,6 +5,7 @@ using TaskBoard.Api.Data;
 using TaskBoard.Api.Dtos;
 using TaskBoard.Api.Extensions;
 using TaskBoard.Api.Models;
+using TaskBoard.Api.Services;
 
 namespace TaskBoard.Api.Controllers;
 
@@ -74,7 +75,7 @@ public class HabitsController : ControllerBase
         {
             UserId = userId,
             Name = dto.Name,
-            Frequency = dto.Frequency,
+            TimesPerWeek = dto.TimesPerWeek,
             SortOrder = maxOrder + 1,
             CreatedAt = DateTime.UtcNow
         };
@@ -83,6 +84,28 @@ public class HabitsController : ControllerBase
         await _context.SaveChangesAsync();
 
         return CreatedAtAction(nameof(GetAll), MapToDto(habit));
+    }
+
+    // PUT /api/Habits/5
+    // Renombrar o cambiar el objetivo semanal. El historial (logs) se conserva tal cual.
+    [HttpPut("{id:int}")]
+    public async Task<ActionResult<HabitDto>> Update(int id, UpdateHabitDto dto)
+    {
+        var userId = User.GetUserId();
+
+        var habit = await _context.Habits
+            .FirstOrDefaultAsync(h => h.Id == id && h.UserId == userId);
+
+        if (habit is null)
+        {
+            return NotFound();
+        }
+
+        habit.Name = dto.Name.Trim();
+        habit.TimesPerWeek = dto.TimesPerWeek;
+        await _context.SaveChangesAsync();
+
+        return Ok(MapToDto(habit));
     }
 
     // PUT /api/Habits/reorder
@@ -172,7 +195,7 @@ public class HabitsController : ControllerBase
     }
 
     [HttpGet("{id:int}/stats")]
-    public async Task<ActionResult<object>> GetStats(int id)
+    public async Task<ActionResult<HabitStatsDto>> GetStats(int id)
     {
         var userId = User.GetUserId();
 
@@ -186,73 +209,30 @@ public class HabitsController : ControllerBase
 
         var createdDate = DateOnly.FromDateTime(habit.CreatedAt);
 
+        // Defensa: se ignoran logs anteriores a la creación del hábito (datos de prueba, etc.)
         var logs = await _context.HabitLogs
-            .Where(l => l.HabitId == id)
+            .Where(l => l.HabitId == id && l.Date >= createdDate)
             .ToListAsync();
 
-        // Defensa: ignoramos logs anteriores a la creación del hábito (no deberían
-        // existir en uso normal, pero si aparecen -p.ej. datos de prueba- no deben
-        // distorsionar el cálculo).
-        logs = logs.Where(l => l.Date >= createdDate).ToList();
-
-        // NOTA: usamos DateTime.Now (hora del servidor, Madrid) en vez de UtcNow.
-        // Limitación conocida: entre 00:00 y 02:00 en verano (UTC+2) esto asume que
-        // el "día" ya cambió según la hora local, lo cual es correcto para el usuario
-        // pero técnicamente distinto del día UTC. Suficiente para el alcance de este proyecto.
+        // Hora local del servidor (Madrid): el "hoy" del usuario. Ver nota de limitación en GetLogs.
         var today = DateOnly.FromDateTime(DateTime.Now);
 
-        var completedLogs = logs.Count(l => l.Completed);
-        var totalLogs = logs.Count;
-
-        double completionRate;
-
-        if (habit.Frequency == HabitFrequency.Daily)
-        {
-            var elapsedDays = today.DayNumber - createdDate.DayNumber + 1;
-            var completedDays = logs.Count(l => l.Completed);
-
-            completionRate = elapsedDays <= 0
-                ? 0
-                : (double)completedDays / elapsedDays * 100;
-        }
-        else // Weekly
-        {
-            var elapsedWeeks = (today.DayNumber - createdDate.DayNumber) / 7 + 1;
-
-            var completedWeeks = logs
-                .Where(l => l.Completed)
-                .Select(l => (l.Date.DayNumber - createdDate.DayNumber) / 7)
-                .Distinct()
-                .Count();
-
-            completionRate = elapsedWeeks <= 0
-                ? 0
-                : (double)completedWeeks / elapsedWeeks * 100;
-        }
-
-        // Racha: si hoy todavía no está marcado, la racha sigue viva contando desde ayer
-        // (el día de hoy aún no ha "fallado", simplemente no se ha registrado todavía).
         var completedDates = logs
             .Where(l => l.Completed)
             .Select(l => l.Date)
             .ToHashSet();
 
-        var cursor = completedDates.Contains(today) ? today : today.AddDays(-1);
-        var currentStreak = 0;
+        var stats = HabitProgress.Calculate(habit.TimesPerWeek, createdDate, today, completedDates);
 
-        while (completedDates.Contains(cursor))
+        return Ok(new HabitStatsDto
         {
-            currentStreak++;
-            cursor = cursor.AddDays(-1);
-        }
-
-        return Ok(new
-        {
-            habitName = habit.Name,
-            totalLogs,
-            completedLogs,
-            completionRate = Math.Round(completionRate, 1),
-            currentStreak
+            HabitName = habit.Name,
+            TimesPerWeek = habit.TimesPerWeek,
+            TotalLogs = logs.Count,
+            CompletedLogs = completedDates.Count,
+            CompletionRate = Math.Round(stats.CompletionRate, 1),
+            CurrentStreak = stats.CurrentStreak,
+            StreakUnit = stats.StreakUnit
         });
     }
 
@@ -262,7 +242,7 @@ public class HabitsController : ControllerBase
         {
             Id = habit.Id,
             Name = habit.Name,
-            Frequency = habit.Frequency,
+            TimesPerWeek = habit.TimesPerWeek,
             CreatedAt = habit.CreatedAt
         };
     }

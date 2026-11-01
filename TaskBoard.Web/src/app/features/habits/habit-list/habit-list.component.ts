@@ -10,7 +10,6 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
@@ -20,7 +19,9 @@ import {
 } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { addDays, parseIsoDate, startOfWeek, toIsoDate, todayIso } from '../../../shared/utils/local-date';
 import { HabitService } from '../habit.service';
-import { FREQUENCY_LABELS, Habit, HabitFrequency, HabitLog } from '../habit.models';
+import { Habit, HabitLog, UpdateHabitRequest, frequencyShortLabel } from '../habit.models';
+import { HabitEditDialogComponent } from '../habit-edit-dialog/habit-edit-dialog.component';
+import { TimesPerWeekPickerComponent } from '../times-per-week-picker/times-per-week-picker.component';
 
 interface WeekDay {
   iso: string;
@@ -41,8 +42,9 @@ interface HabitCell {
 interface HabitRow {
   habit: Habit;
   cells: HabitCell[];
+  /** Días marcados esta semana (puede pasar del objetivo: hacer de más también vale). */
   weekCount: number;
-  /** Objetivo de la semana: 7 días si es diario, 1 vez si es semanal. */
+  /** Objetivo de la semana: las veces por semana del hábito (7 = diario). */
   weekTarget: number;
   /** Objetivo de la semana cumplido. */
   weekMet: boolean;
@@ -59,13 +61,13 @@ const logKey = (habitId: number, iso: string) => `${habitId}|${iso}`;
     MatFormFieldModule,
     MatInputModule,
     MatButtonModule,
-    MatButtonToggleModule,
     MatIconModule,
     MatMenuModule,
     MatProgressBarModule,
     CdkDropList,
     CdkDrag,
-    CdkDragHandle
+    CdkDragHandle,
+    TimesPerWeekPickerComponent
   ],
   templateUrl: './habit-list.component.html',
   styleUrl: './habit-list.component.scss'
@@ -80,7 +82,7 @@ export class HabitListComponent {
   /** Directiva del <form>: resetForm() limpia valores, "touched" Y el estado "submitted". */
   private readonly formDir = viewChild.required(FormGroupDirective);
 
-  protected readonly frequencyLabels = FREQUENCY_LABELS;
+  protected readonly shortLabel = frequencyShortLabel;
   readonly today = todayIso();
 
   // ── Estado ──────────────────────────────────────────────
@@ -97,7 +99,7 @@ export class HabitListComponent {
 
   readonly createForm = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.minLength(3)]],
-    frequency: ['Daily' as HabitFrequency]
+    timesPerWeek: [7]
   });
 
   // ── Estado derivado ────────────────────────────────────
@@ -129,9 +131,8 @@ export class HabitListComponent {
           isToday: day.isToday
         };
       });
-      const weekTarget = habit.frequency === 'Weekly' ? 1 : 7;
-      // En un semanal, marcar más de un día sigue contando como "1/1".
-      const weekCount = Math.min(cells.filter(c => c.done).length, weekTarget);
+      const weekTarget = habit.timesPerWeek;
+      const weekCount = cells.filter(c => c.done).length;
       return { habit, cells, weekCount, weekTarget, weekMet: weekCount >= weekTarget };
     });
   });
@@ -194,7 +195,7 @@ export class HabitListComponent {
 
   // ── Acciones ────────────────────────────────────────────
   create(): void {
-    const { name, frequency } = this.createForm.getRawValue();
+    const { name, timesPerWeek } = this.createForm.getRawValue();
     const trimmed = name.trim();
     if (this.createForm.invalid || trimmed.length < 3) {
       this.createForm.markAllAsTouched();
@@ -203,12 +204,12 @@ export class HabitListComponent {
 
     this.creating.set(true);
     this.habitService
-      .create({ name: trimmed, frequency })
+      .create({ name: trimmed, timesPerWeek })
       .pipe(finalize(() => this.creating.set(false)))
       .subscribe({
         next: habit => {
           this.habits.update(list => [...list, habit]);
-          this.formDir().resetForm({ name: '', frequency }); // mantiene la frecuencia elegida
+          this.formDir().resetForm({ name: '', timesPerWeek }); // mantiene el objetivo elegido
         },
         error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo crear el hábito.'))
       });
@@ -229,6 +230,26 @@ export class HabitListComponent {
           this.setLog(cell.key, cell.done); // revertir
           this.notify(this.apiError(error, 'No se pudo registrar el día.'));
         }
+      });
+  }
+
+  edit(habit: Habit): void {
+    this.dialog
+      .open<HabitEditDialogComponent, Habit, UpdateHabitRequest>(HabitEditDialogComponent, {
+        width: '440px',
+        data: habit
+      })
+      .afterClosed()
+      .pipe(
+        filter((request): request is UpdateHabitRequest => !!request),
+        switchMap(request => this.habitService.update(habit.id, request))
+      )
+      .subscribe({
+        next: updated => {
+          this.habits.update(list => list.map(h => (h.id === updated.id ? updated : h)));
+          this.notify('Hábito actualizado');
+        },
+        error: (error: HttpErrorResponse) => this.notify(this.apiError(error, 'No se pudo guardar el hábito.'))
       });
   }
 

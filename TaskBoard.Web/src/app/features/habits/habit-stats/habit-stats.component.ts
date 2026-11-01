@@ -6,7 +6,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { HabitStatCardComponent } from '../habit-stat-card/habit-stat-card.component';
 import { HabitService } from '../habit.service';
-import { Habit, HabitRank, HabitStats } from '../habit.models';
+import { Habit, HabitRank, HabitStats, streakInDays, streakUnitLabel } from '../habit.models';
 
 interface RankedHabit {
   habit: Habit;
@@ -52,8 +52,9 @@ export class HabitStatsComponent {
     if (list.length === 0) return null;
 
     const rates = list.map(item => item.stats.completionRate);
+    // Se compara en días para que 2 semanas (14 días) gane a una racha diaria de 5
     const streakLeader = list.reduce((best, item) =>
-      item.stats.currentStreak > best.stats.currentStreak ? item : best
+      streakInDays(item.stats) > streakInDays(best.stats) ? item : best
     );
 
     return {
@@ -61,6 +62,7 @@ export class HabitStatsComponent {
       averageRate: Math.round(rates.reduce((a, b) => a + b, 0) / rates.length),
       completed: list.reduce((sum, item) => sum + item.stats.completedLogs, 0),
       bestStreak: streakLeader.stats.currentStreak,
+      bestStreakUnit: streakUnitLabel(streakLeader.stats.currentStreak, streakLeader.stats.streakUnit),
       bestStreakName: streakLeader.habit.name
     };
   });

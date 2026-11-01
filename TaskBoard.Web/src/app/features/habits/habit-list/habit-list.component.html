@@ -8,14 +8,7 @@
     }
   </mat-form-field>
 
-  <mat-button-toggle-group
-    formControlName="frequency"
-    class="frequency"
-    hideSingleSelectionIndicator
-    aria-label="Frecuencia">
-    <mat-button-toggle value="Daily">Diario</mat-button-toggle>
-    <mat-button-toggle value="Weekly">Semanal</mat-button-toggle>
-  </mat-button-toggle-group>
+  <app-times-per-week-picker formControlName="timesPerWeek" class="times" />
 
   <button mat-flat-button type="submit" class="create-btn" [disabled]="creating()">
     <mat-icon>add</mat-icon> Añadir
@@ -95,7 +88,7 @@
                 <div class="name-text">
                   <span class="habit-name">{{ row.habit.name }}</span>
                   <span class="habit-meta" [class.met]="row.weekMet">
-                    {{ frequencyLabels[row.habit.frequency] }} · {{ row.weekCount }}/{{ row.weekTarget }}
+                    {{ shortLabel(row.habit.timesPerWeek) }} · {{ row.weekCount }}/{{ row.weekTarget }}
                     @if (row.weekMet) {
                       <mat-icon class="met-icon" aria-label="Objetivo de la semana cumplido">check_circle</mat-icon>
                     }
@@ -109,6 +102,10 @@
                   <mat-icon>more_vert</mat-icon>
                 </button>
                 <mat-menu #habitMenu="matMenu">
+                  <button mat-menu-item (click)="edit(row.habit)">
+                    <mat-icon>edit</mat-icon>
+                    <span>Editar</span>
+                  </button>
                   <button mat-menu-item class="danger" (click)="remove(row.habit)">
                     <mat-icon>delete</mat-icon>
                     <span>Eliminar hábito</span>

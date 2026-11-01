@@ -35,6 +35,10 @@ export const routes: Routes = [
         path: 'gym',
         loadChildren: () => import('./features/gym/gym.routes').then(m => m.GYM_ROUTES)
       },
+      {
+        path: 'settings',
+        loadComponent: () => import('./features/settings/settings.component').then(m => m.SettingsComponent)
+      },
       { path: '', pathMatch: 'full', redirectTo: 'tasks' }
     ]
   },

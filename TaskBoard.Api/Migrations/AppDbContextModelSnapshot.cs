@@ -62,14 +62,14 @@ namespace TaskBoard.Api.Migrations
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("Frequency")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<int>("TimesPerWeek")
                         .HasColumnType("int");
 
                     b.Property<int>("UserId")

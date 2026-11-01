@@ -1,0 +1,42 @@
+<button
+  mat-icon-button
+  type="button"
+  class="step"
+  [disabled]="disabled() || value() <= min"
+  (click)="step(-1)"
+  aria-label="Menos veces por semana">
+  <mat-icon>remove</mat-icon>
+</button>
+
+<!-- role="spinbutton": los lectores de pantalla lo anuncian como un número ajustable con las flechas -->
+<span
+  class="value"
+  role="spinbutton"
+  [attr.tabindex]="disabled() ? -1 : 0"
+  [attr.aria-valuenow]="value()"
+  [attr.aria-valuemin]="min"
+  [attr.aria-valuemax]="max"
+  [attr.aria-valuetext]="ariaText()"
+  aria-label="Objetivo semanal"
+  (keydown.arrowup)="step(1, $event)"
+  (keydown.arrowright)="step(1, $event)"
+  (keydown.arrowdown)="step(-1, $event)"
+  (keydown.arrowleft)="step(-1, $event)">
+  @if (isDaily()) {
+    <strong>Diario</strong>
+    <small>7 días</small>
+  } @else {
+    <strong>{{ value() }}×</strong>
+    <small>por semana</small>
+  }
+</span>
+
+<button
+  mat-icon-button
+  type="button"
+  class="step"
+  [disabled]="disabled() || value() >= max"
+  (click)="step(1)"
+  aria-label="Más veces por semana">
+  <mat-icon>add</mat-icon>
+</button>
